@@ -7,6 +7,8 @@ app.use(express.json({ limit: '6mb' }));
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }, max: 3 });
 const q = (t, p) => pool.query(t, p);
 const BOT = process.env.BOT_TOKEN;
+// Telegram Web App button destination. Set APP_URL in Vercel; this is the safe fallback for this project.
+const APP_URL = (process.env.APP_URL || 'https://reward-bxv6.vercel.app').replace(/\/+$/, '');
 const OWNER = (process.env.OWNER_USERNAME || 'abdu_your_owner').replace(/^@/, '');
 const BOT_SECRET = process.env.BOT_SECRET || '';
 const same = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); };
@@ -30,7 +32,8 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS streak INT NOT NULL DEFAULT 0;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS last_checkin DATE;
 CREATE TABLE IF NOT EXISTS promos(id SERIAL PRIMARY KEY, code TEXT UNIQUE NOT NULL, points INT NOT NULL, max_uses INT NOT NULL DEFAULT 0, used INT NOT NULL DEFAULT 0, expires_at TIMESTAMPTZ, active BOOL DEFAULT true, created_at TIMESTAMPTZ DEFAULT now());
 CREATE TABLE IF NOT EXISTS promo_uses(promo_id INT, user_id BIGINT, created_at TIMESTAMPTZ DEFAULT now(), PRIMARY KEY(promo_id, user_id));
-CREATE TABLE IF NOT EXISTS broadcasts(id SERIAL PRIMARY KEY, text TEXT, with_button BOOL DEFAULT true, total INT DEFAULT 0, sent INT DEFAULT 0, failed INT DEFAULT 0, last_id BIGINT DEFAULT 0, status TEXT DEFAULT 'sending', created_at TIMESTAMPTZ DEFAULT now());`;
+CREATE TABLE IF NOT EXISTS broadcasts(id SERIAL PRIMARY KEY, text TEXT, with_button BOOL DEFAULT true, total INT DEFAULT 0, sent INT DEFAULT 0, failed INT DEFAULT 0, last_id BIGINT DEFAULT 0, status TEXT DEFAULT 'sending', created_at TIMESTAMPTZ DEFAULT now());
+CREATE TABLE IF NOT EXISTS verification_welcomes(user_id BIGINT PRIMARY KEY, message_sent BOOL NOT NULL DEFAULT false, created_at TIMESTAMPTZ DEFAULT now());`;
 let ready; const init = () => ready || (ready = q(SCHEMA));
 app.use((req, res, next) => init().then(() => next(), next));
 
@@ -64,14 +67,50 @@ async function touchUser(id, name, username, ref) {
 }
 const auth = async (req, res, next) => {
   try {
+    // Telegram's signed initData is verified on the server. Invalid browser requests are rejected.
     const u = verify(req.headers['x-init']);
     if (!u) return fail(res, 'Open this app from Telegram', 401);
+
     const name = [u.first_name, u.last_name].filter(Boolean).join(' ');
     await touchUser(u.id, name, u.username, Number(req.headers['x-ref']) || 0);
-    req.u = u; req.admin = ADMINS.includes(String(u.id));
-    if (!req.admin) { const s = await settings(); if (s.maintenance) return res.status(503).json({ error: s.maintenance_msg, maintenance: true }); }
+    req.u = u;
+    req.admin = ADMINS.includes(String(u.id));
+
+    // Create one welcome record per Telegram user; no Telegram callback query is required.
+    const firstWelcome = await q(
+      'INSERT INTO verification_welcomes(user_id) VALUES($1) ON CONFLICT(user_id) DO NOTHING RETURNING user_id',
+      [u.id]
+    );
+    req.verifiedWelcome = firstWelcome.rowCount > 0;
+
+    // Send the confirmation once. Its button is a Telegram Web App URL button,
+    // so it opens the Mini App directly and needs no TeleBot Creator callback handler.
+    if (req.verifiedWelcome && BOT) {
+      const result = await tg('sendMessage', {
+        chat_id: u.id,
+        text: `✅ Account verified successfully!\n\nWelcome to Rewards, ${name || 'friend'}! Your Telegram account has been verified and your app is ready.`,
+        reply_markup: {
+          inline_keyboard: [[
+            { text: '🎁 Open Rewards App', web_app: { url: APP_URL } }
+          ]]
+        }
+      });
+      if (result && result.ok) {
+        await q('UPDATE verification_welcomes SET message_sent=true WHERE user_id=$1', [u.id]);
+      } else {
+        console.error('Telegram welcome message could not be sent:', result && (result.description || result.error_code));
+      }
+    }
+
+    if (!req.admin) {
+      const s = await settings();
+      if (s.maintenance) return res.status(503).json({ error: s.maintenance_msg, maintenance: true });
+    }
     next();
-  } catch (e) { fail(res, e.message, 500); }
+  } catch (e) {
+    console.error('Authentication middleware error:', e);
+    fail(res, e.message, 500);
+  }
 };
 const adminOnly = (req, res, next) => req.admin ? next() : fail(res, 'Admins only', 403);
 
@@ -106,7 +145,7 @@ app.get('/api/home', auth, wrap(async (req, res) => {
     q('SELECT id,name,points FROM users WHERE points>0 ORDER BY points DESC, id LIMIT 10'),
     q('SELECT u.id,u.name,count(*)::int AS invites FROM users u JOIN users i ON i.invited_by=u.id GROUP BY u.id,u.name ORDER BY invites DESC, u.id LIMIT 10'),
     checkinState(req.u.id, s)]);
-  res.json({ checkin: ck, maintenance: req.admin ? s.maintenance : 0, top_points: topP.rows, top_invites: topI.rows, me: req.u.id, admin: req.admin, bot: process.env.BOT_USERNAME, owner: OWNER, points: me.rows[0].points, invites: inv, rewards: rewards.rows, tasks: tasks.rows,
+  res.json({ verified_welcome: req.verifiedWelcome === true, checkin: ck, maintenance: req.admin ? s.maintenance : 0, top_points: topP.rows, top_invites: topI.rows, me: req.u.id, admin: req.admin, bot: process.env.BOT_USERNAME, owner: OWNER, points: me.rows[0].points, invites: inv, rewards: rewards.rows, tasks: tasks.rows,
     invite_points: s.invite_points, ad_limit: s.daily_ad_limit, ads_today: today, ad_pending: pend.rowCount > 0 });
 }));
 
@@ -319,9 +358,9 @@ app.post('/api/admin/settings', ad, wrap(async (req, res) => {
 // Open <APP_URL>/api/setup once after deploying: it sets the Open-app menu button and shows what is missing.
 // It does NOT touch the webhook, because the bot runs on Telebot Creator.
 app.get('/api/setup', wrap(async (req, res) => {
-  const env = { DATABASE_URL: !!process.env.DATABASE_URL, BOT_TOKEN: !!BOT, BOT_USERNAME: !!process.env.BOT_USERNAME, APP_URL: process.env.APP_URL || null, ADMIN_IDS: ADMINS.length, BOT_SECRET: !!BOT_SECRET, OWNER };
-  if (!BOT || !process.env.APP_URL) return res.json({ ok: false, env, hint: 'Set BOT_TOKEN and APP_URL in Vercel, then Redeploy.' });
-  const url = process.env.APP_URL.replace(/\/$/, '');
+  const env = { DATABASE_URL: !!process.env.DATABASE_URL, BOT_TOKEN: !!BOT, BOT_USERNAME: !!process.env.BOT_USERNAME, APP_URL, ADMIN_IDS: ADMINS.length, BOT_SECRET: !!BOT_SECRET, OWNER };
+  if (!BOT) return res.json({ ok: false, env, hint: 'Set BOT_TOKEN in Vercel, then Redeploy.' });
+  const url = APP_URL;
   const menu = await tg('setChatMenuButton', { menu_button: { type: 'web_app', text: 'Open app', web_app: { url } } });
   const info = await tg('getWebhookInfo', {});
   let db = 'ok'; try { await q('SELECT 1'); } catch (e) { db = e.message; }
