@@ -65,7 +65,7 @@ async function redeem(){const r=await api('promo','POST',{code:v('pc')});toast('
 function home(){return `
 <div class="top"><div><span>Welcome back</span><b>${esc(tg.initDataUnsafe.user?.first_name||'Friend')}</b></div></div>
 ${S.maintenance?`<div class="card" style="border-color:var(--red)"><b>Maintenance mode is ON</b><div class="mut">Only admins can use the app right now.</div></div>`:''}
-<div class="hero"><small>${ic('star')} Your points</small><div class="n">${S.points}</div>${S.ad_pending?`<button class="w" onclick="run(collectAd)">${ic('star')} Collect 1 point</button> <button style="background:#ffffff33;color:#fff" onclick="run(watch)">${ic('play')} Open ad again</button>`:`<button class="w" onclick="run(watch)">${ic('play')} Watch an ad, get 1 point</button>`}
+<div class="hero"><small>${ic('play')} Watch ads</small><div style="position:relative;z-index:1;margin:8px 0 12px;font-size:14px;opacity:.92">Complete an ad to earn points.</div>${S.ad_pending?`<button class="w" onclick="run(watch)">${ic('play')} Open ad again</button>`:`<button class="w" onclick="run(watch)">${ic('play')} Watch an ad</button>`}
 <div style="position:relative;z-index:1;margin-top:12px;font-size:12px;opacity:.9">Ads today: ${S.ads_today} / ${S.ad_limit}</div></div>
 ${checkin()}
 ${promoCard()}
@@ -100,9 +100,8 @@ async function doTask(id){const r=await api('task/'+id,'POST');toast('+'+r.point
 async function watch(){
   const r=await api('ad/start','POST');
   await load();
-  toast('Watch the ad in the bot, then come back and collect your point');
+  toast('Complete the ad in the bot, then return to the app');
   open(r.link)}
-async function collectAd(){await api('ad/done','POST');toast('+1 point');await load()}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&tab==='home')run(load)});
 
 // ---------- Admin ----------
