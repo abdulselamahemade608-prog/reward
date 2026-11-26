@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT);`;
 let ready; const init = () => ready || (ready = q(SCHEMA));
 app.use((req, res, next) => init().then(() => next(), next));
 
-const DEF = { ad_seconds: 5, invite_points: 5, daily_ad_limit: 100, ad_confirm: 0 };
+const DEF = { ad_seconds: 5, invite_points: 5, daily_ad_limit: 100, ad_confirm: 1 };
 const settings = async () => { const s = { ...DEF }; (await q('SELECT * FROM settings')).rows.forEach(r => s[r.key] = Number(r.value)); return s; };
 
 // ---- Telegram initData verification ----
@@ -123,9 +123,10 @@ app.all('/api/bot/start', botAuth, wrap(async (req, res) => {
 }));
 // Called by the bot when the user finished the ad in Telebot Creator.
 app.all('/api/bot/ad', botAuth, wrap(async (req, res) => {
-  const id = Number(botData(req).user_id);
-  if (!id) return fail(res, 'user_id is required');
-  const r = await q(`UPDATE ad_views SET confirmed=true WHERE token=(SELECT token FROM ad_views WHERE user_id=$1 AND NOT done AND started>now()-interval '${AD_WINDOW}' ORDER BY started DESC LIMIT 1) RETURNING 1`, [id]);
+  const b = botData(req), id = Number(b.user_id), token = String(b.token || '').replace(/^ad_/, '');
+  if (!id || !token) return fail(res, 'user_id and token are required');
+  // The token was created for this exact user when they tapped "Watch an ad", so it cannot be confirmed for someone else or reused.
+  const r = await q(`UPDATE ad_views SET confirmed=true WHERE token=$2 AND user_id=$1 AND NOT done AND started>now()-interval '${AD_WINDOW}' RETURNING 1`, [id, token]);
   res.json({ ok: true, found: r.rowCount > 0 });
 }));
 
@@ -136,8 +137,9 @@ app.post('/api/ad/start', auth, wrap(async (req, res) => {
   if (!process.env.BOT_USERNAME) return fail(res, 'BOT_USERNAME is not set on the server.');
   if (await adsToday(req.u.id) >= s.daily_ad_limit) return fail(res, 'Daily ad limit reached. Come back tomorrow.');
   await q('DELETE FROM ad_views WHERE user_id=$1 AND NOT done', [req.u.id]);
-  await q('INSERT INTO ad_views(token,user_id,ad_id) VALUES($1,$2,0)', [crypto.randomBytes(12).toString('hex'), req.u.id]);
-  res.json({ ok: true, link: `https://t.me/${process.env.BOT_USERNAME}?start=ad`, seconds: s.ad_seconds });
+  const token = crypto.randomBytes(12).toString('hex');
+  await q('INSERT INTO ad_views(token,user_id,ad_id) VALUES($1,$2,0)', [token, req.u.id]);
+  res.json({ ok: true, link: `https://t.me/${process.env.BOT_USERNAME}?start=ad_${token}`, seconds: s.ad_seconds });
 }));
 
 app.post('/api/ad/done', auth, wrap(async (req, res) => {
