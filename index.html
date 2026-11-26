@@ -1,223 +1,2184 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Rewards</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#d9e3e8">
+<title>Account Verification</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
 <style>
-:root{--bg:#f4f2ff;--card:#fff;--ink:#1b1340;--mut:#6f6a8f;--line:#e6e2fa;--v:#6c4cf1;--pk:#ff5c8a;--mint:#12b886;--sun:#ffb020;--sky:#2d9cff;--red:#f0445b}
-@media(prefers-color-scheme:dark){:root{--bg:#120d2b;--card:#1d1642;--ink:#f1eeff;--mut:#a39fc9;--line:#2c2460}}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:var(--bg);color:var(--ink);font:500 15px/1.45 "Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:96px}
-.wrap{padding:16px;max-width:560px;margin:auto}
-svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
-h1,h2,h3{margin:0}h2{font-size:18px;font-weight:800;margin:26px 0 12px;display:flex;align-items:center;gap:10px}
-.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.top b{font-size:20px;font-weight:800}.top span{color:var(--mut);font-size:13px;display:block}
-.hero{position:relative;overflow:hidden;border-radius:26px;padding:24px;color:#fff;background:linear-gradient(135deg,#6c4cf1 0%,#b04cf1 55%,#ff5c8a 100%);box-shadow:0 18px 40px -18px #6c4cf1}
-.hero:before,.hero:after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.14)}
-.hero:before{width:190px;height:190px;right:-50px;top:-70px}.hero:after{width:110px;height:110px;right:50px;bottom:-60px}
-.hero small{opacity:.85;font-weight:700;display:flex;align-items:center;gap:6px}
-.hero .n{font-size:64px;font-weight:800;letter-spacing:-3px;line-height:1;margin:8px 0 18px}
-.hero button{position:relative;z-index:1}
-.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:12px}
-.card .ph{width:100%;height:150px;object-fit:cover;border-radius:14px;margin-bottom:12px;display:block}
-.noimg{height:110px;border-radius:14px;margin-bottom:12px;display:grid;place-items:center;color:#fff}.noimg svg{width:40px;height:40px}
-.row{display:flex;gap:10px;align-items:center;justify-content:space-between}
-.head{display:flex;gap:12px;align-items:center}
-.ico{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;color:#fff;flex:none}
-.g1{background:linear-gradient(135deg,#6c4cf1,#9a7bff)}.g2{background:linear-gradient(135deg,#ff5c8a,#ff8f6b)}
-.g3{background:linear-gradient(135deg,#12b886,#4fd6a8)}.g4{background:linear-gradient(135deg,#ffb020,#ffd24d);color:#4a2f00}
-.g5{background:linear-gradient(135deg,#2d9cff,#59c2ff)}.g6{background:linear-gradient(135deg,#f0445b,#ff7a8a)}
-.mut{color:var(--mut);font-size:13px;white-space:pre-wrap}
-button{font:inherit;font-weight:700;border:0;border-radius:14px;padding:11px 16px;background:var(--v);color:#fff;cursor:pointer;display:inline-flex;align-items:center;gap:8px;justify-content:center;transition:transform .12s}
-button:active{transform:scale(.96)}
-button.w{background:#fff;color:#4b2fd0}button.soft{background:color-mix(in srgb,var(--v) 14%,transparent);color:var(--v)}
-button.bad{background:color-mix(in srgb,var(--red) 14%,transparent);color:var(--red);padding:9px}button.ok{background:var(--mint)}button.full{width:100%}
-button:disabled{opacity:.5}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
-.pill{display:inline-flex;align-items:center;gap:4px;background:color-mix(in srgb,var(--sun) 24%,transparent);color:#b36b00;border-radius:99px;padding:4px 10px;font-weight:800;font-size:13px;white-space:nowrap}
-.pill svg{width:14px;height:14px}.st{font-size:12px;font-weight:800;padding:3px 10px;border-radius:99px}
-.st.pending{background:#ffb02033;color:#b36b00}.st.approved{background:#12b88622;color:var(--mint)}.st.rejected{background:#f0445b22;color:var(--red)}
-.done{opacity:.6}.bar{height:8px;background:var(--line);border-radius:9px;overflow:hidden;margin:10px 0 12px}.bar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,var(--sun),var(--pk));width:0;transition:width .4s}
-.invite{background:linear-gradient(135deg,#12b886,#2d9cff);color:#fff;border:0}.invite .mut{color:#ffffffcc}
-nav{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));max-width:536px;margin:auto;display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:6px;box-shadow:0 14px 30px -14px #1b134066;z-index:5}
-nav button{flex:1;flex-direction:column;gap:2px;font-size:12px;background:none;color:var(--mut);padding:8px;border-radius:16px}
-nav button.on{background:var(--v);color:#fff}
-input,select,textarea{width:100%;font:inherit;padding:12px;margin:5px 0 10px;border:1.5px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink)}
-label{font-size:13px;color:var(--mut);font-weight:700}
-#ov{position:fixed;inset:0;background:var(--bg);z-index:9;display:none;overflow:auto}
-#toast{position:fixed;left:50%;top:14px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:99px;z-index:20;display:none;max-width:90%;text-align:center;font-weight:700}
-.empty{text-align:center;color:var(--mut);padding:26px 10px}.empty .ico{margin:0 auto 10px;width:54px;height:54px;border-radius:18px}
-.center{min-height:100vh;display:grid;place-items:center;text-align:center;padding:30px}
-@media(prefers-reduced-motion:reduce){*{transition:none!important}}
-</style></head><body>
-<div class="wrap" id="app"></div><div id="ov"></div><div id="toast"></div><nav id="nav"></nav>
-<script>
-const tg=window.Telegram&&window.Telegram.WebApp;
-const P={home:'<path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>',tasks:'<path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/>',
-shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',play:'<path d="M7 4l13 8-13 8z" fill="currentColor"/>',
-gift:'<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8M7.5 8a2.5 2.5 0 1 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 1 1 0 5"/>',
-users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17 14c2.7 0 4.5 1.8 4.5 4.5"/>',
-send:'<path d="M21 3L3 10.5l6.5 2.5L12 20z"/><path d="M9.5 13L21 3"/>',bot:'<rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 4v4M9 14h.01M15 14h.01"/>',
-share:'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/>',copy:'<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',
-plus:'<path d="M12 5v14M5 12h14"/>',trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
-star:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z" fill="currentColor"/>',check:'<path d="M5 12.5l4.5 4.5L19 7"/>',
-x:'<path d="M6 6l12 12M18 6L6 18"/>',ad:'<path d="M3 11v2a1 1 0 0 0 1 1h3l7 4V6L7 10H4a1 1 0 0 0-1 1z"/><path d="M18 9a4 4 0 0 1 0 6"/>',
-set:'<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
-out:'<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>',inbox:'<path d="M4 13l2-8h12l2 8v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M4 13h5a3 3 0 0 0 6 0h5"/>'};
-const ic=n=>`<svg viewBox="0 0 24 24">${P[n]}</svg>`;
-const tile=(n,g)=>`<span class="ico ${g}">${ic(n)}</span>`;
-const $=s=>document.querySelector(s);
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-
-if(!tg||!tg.initData){
-  $('#app').innerHTML=`<div class="center"><div>${tile('send','g1').replace('ico','ico" style="width:64px;height:64px;margin:0 auto 16px')}<h2 style="justify-content:center;margin:0 0 6px">Open this app in Telegram</h2><p class="mut">Start the bot and tap the app button. This page does not work in a normal browser.</p></div></div>`;
-  throw new Error('Not inside Telegram');
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
 }
-tg.ready();tg.expand();
-const ref=String(new URLSearchParams(location.search).get('ref')||(tg.initDataUnsafe&&tg.initDataUnsafe.start_param)||'').replace('ref_','');
-async function api(p,m='GET',b){
-  const r=await fetch('/api/'+p,{method:m,headers:{'Content-Type':'application/json','x-init':tg.initData,'x-ref':ref},body:b?JSON.stringify(b):undefined});
-  const j=await r.json().catch(()=>({}));if(!r.ok){const e=new Error(j.error||'Something went wrong');e.maint=!!j.maintenance;throw e}return j}
-function showMaint(m){$('#nav').innerHTML='';$('#app').innerHTML=`<div class="center"><div><span class="ico g4" style="width:64px;height:64px;margin:0 auto 16px">${ic('set')}</span><h2 style="justify-content:center;margin:0 0 8px">Under maintenance</h2><p class="mut">${esc(m)}</p><button onclick="location.reload()">Try again</button></div></div>`}
-let tt;function toast(t){const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(tt);tt=setTimeout(()=>e.style.display='none',2800)}
-const run=async f=>{try{await f()}catch(e){e.maint?showMaint(e.message):toast(e.message)}};
-const open=u=>/^https:\/\/t\.me\//.test(u)?tg.openTelegramLink(u):tg.openLink(u);
-const GR=['g1','g2','g3','g4','g5'];
-const img=(id,i=0,icon='gift')=>id?`<img class="ph" src="/img/${id}" alt="">`:`<div class="noimg ${GR[i%5]}">${ic(icon)}</div>`;
-let S={},A=null,PR=null,tab='home',first=true;
 
-async function load(){S=await api('home');if(tab==='admin')A=await api('admin/data');if(tab==='profile')PR=await api('profile');render();
-  if(first&&tab==='home'){first=false;const e=$('.hero .n');if(e){const to=S.points,t0=performance.now();(function f(t){const k=Math.min(1,(t-t0)/700);e.textContent=Math.round(to*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(f)})(t0)}}}
-function render(){
-  $('#nav').innerHTML=[['home','Home','home'],['tasks','Tasks','tasks'],['profile','Profile','user'],...(S.admin?[['admin','Admin','shield']]:[])].map(([k,l,i])=>`<button class="${tab===k?'on':''}" onclick="tab='${k}';run(load)">${ic(i)}${l}</button>`).join('');
-  $('#app').innerHTML=tab==='home'?home():tab==='tasks'?tasks():tab==='profile'?profile():admin();scrollTo(0,0)}
-const medal=i=>['🥇','🥈','🥉'][i]||('#'+(i+1));
-const board=(t,i,g,rows,val)=>`<h2>${tile(i,g)} ${t}</h2>`+(rows.length?`<div class="card" style="padding:4px 14px">`+rows.map((u,k)=>`<div class="row" style="padding:11px 0;${k?'border-top:1px solid var(--line)':''}"><div class="head"><b style="min-width:34px">${medal(k)}</b><b>${esc(u.name||'User')}${String(u.id)===String(S.me)?' (you)':''}</b></div><span class="pill">${val(u)}</span></div>`).join('')+`</div>`:`<div class="empty">${tile(i,g)}No one yet.<br>Be the first!</div>`);
-function checkin(){const c=S.checkin;if(!c)return '';const pts=n=>c.base+(Math.min(n,c.max)-1)*c.step;
-  const ref=c.done_today?c.streak:c.streak+1,b0=Math.floor((Math.max(ref,1)-1)/7)*7+1;
-  const days=[0,1,2,3,4,5,6].map(i=>b0+i).map(d=>{const done=d<=c.streak,now=!c.done_today&&d===c.streak+1;
-    const st=done?'background:var(--mint);color:#fff':now?'background:var(--sun);color:#fff':'background:var(--bg);border:1.5px solid var(--line)';
-    return `<div style="flex:1;text-align:center"><div style="aspect-ratio:1;border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:13px;${st}">${done?'✓':'+'+pts(d)}</div><div class="mut" style="font-size:10px;margin-top:4px">Day ${d}</div></div>`}).join('');
-  return `<div class="card"><div class="head">${tile('star','g4')}<div><b style="font-size:17px">Daily check-in</b><div class="mut">🔥 ${c.streak} day streak</div></div></div>
-<div class="row" style="gap:6px;margin:14px 0">${days}</div>
-<button class="full ${c.done_today?'soft':'ok'}" ${c.done_today?'disabled':''} onclick="run(doCheckin)">${c.done_today?'Come back tomorrow for +'+pts(c.streak+1):'Check in +'+pts(c.streak+1)}</button></div>`}
-async function doCheckin(){const r=await api('checkin','POST');toast('+'+r.points+' points! 🔥 '+r.streak+' day streak');await load()}
-const promoCard=()=>`<div class="card"><div class="head">${tile('gift','g3')}<div><b style="font-size:17px">Promo code</b><div class="mut">Got a code from our channel? Enter it here.</div></div></div>
-<div class="row" style="gap:8px;margin-top:12px"><input id="pc" placeholder="CODE" autocapitalize="characters" style="margin:0;flex:1;text-transform:uppercase"><button onclick="run(redeem)">Redeem</button></div></div>`;
-async function redeem(){const r=await api('promo','POST',{code:v('pc')});toast('+'+r.points+' points!');await load()}
-function home(){return `
-<div class="top"><div><span>Welcome back</span><b>${esc(tg.initDataUnsafe.user?.first_name||'Friend')}</b></div></div>
-${S.maintenance?`<div class="card" style="border-color:var(--red)"><b>Maintenance mode is ON</b><div class="mut">Only admins can use the app right now.</div></div>`:''}
-<div class="hero"><small>${ic('star')} Your points</small><div class="n">${S.points}</div>${S.ad_pending?`<button class="w" onclick="run(collectAd)">${ic('star')} Collect 1 point</button> <button style="background:#ffffff33;color:#fff" onclick="run(watch)">${ic('play')} Open ad again</button>`:`<button class="w" onclick="run(watch)">${ic('play')} Watch an ad, get 1 point</button>`}
-<div style="position:relative;z-index:1;margin-top:12px;font-size:12px;opacity:.9">Ads today: ${S.ads_today} / ${S.ad_limit}</div></div>
-${checkin()}
-${promoCard()}
-<h2>${tile('gift','g2')} Rewards</h2>
-${(S.rewards||[]).length?(S.rewards||[]).map((r,i)=>{const mi=r.min_invites||0,np=Math.max(0,r.cost-S.points),ni=Math.max(0,mi-S.invites),ok=!np&&!ni,pc=Math.min(100,S.points/r.cost*100),pi=mi?Math.min(100,S.invites/mi*100):100;
-const lbl=ok?ic('gift')+' Claim reward':[np?np+' more points':'',ni?ni+' more invites':''].filter(Boolean).join(' + ')+' needed';
-return `<div class="card">${img(r.image_id,i)}
-<div class="row"><b style="font-size:16px">${esc(r.title)}</b><span><span class="pill">${ic('star')}${r.cost}</span>${mi?` <span class="pill">${ic('users')}${mi}</span>`:''}</span></div>
-<div class="mut" style="margin-top:4px">${esc(r.body)}</div>
-<div class="mut" style="margin-top:8px">Points ${Math.min(S.points,r.cost)} / ${r.cost}</div><div class="bar"><i style="width:${pc}%"></i></div>
-${mi?`<div class="mut">Invites ${Math.min(S.invites,mi)} / ${mi}</div><div class="bar"><i style="width:${pi}%"></i></div>`:''}
-<button class="full ${ok?'ok':'soft'}" ${ok?'':'disabled'} onclick="run(()=>claim(${r.id}))">${lbl}</button></div>`}).join('')
-:`<div class="empty">${tile('gift','g2')}No rewards yet.<br>Check back soon.</div>`}
-${board('Top points','star','g4',S.top_points||[],u=>u.points+' pts')}`}
-function tasks(){
-  const link=`https://t.me/${S.bot}?start=ref_${S.me}`;
-  return `<div class="card invite"><div class="head">${tile('users','g6').replace('g6','')} <div><b style="font-size:17px">Invite friends</b><div class="mut">Earn ${S.invite_points} points for every friend who joins with your link.<br>You invited <b>${S.invites}</b> friend(s) so far.</div></div></div>
-<div class="row" style="margin-top:14px"><button class="w full" onclick="tg.openTelegramLink('https://t.me/share/url?url='+encodeURIComponent('${link}'))">${ic('share')} Share</button>
-<button class="w full" onclick="navigator.clipboard.writeText('${link}').then(()=>toast('Link copied'))">${ic('copy')} Copy</button></div></div>
-${board('Top inviters','users','g3',S.top_invites||[],u=>u.invites+' invites')}
-<h2>${tile('tasks','g1')} Tasks</h2>
-${(S.tasks||[]).length?(S.tasks||[]).map((t,i)=>`<div class="card ${t.done?'done':''}">${t.image_id?img(t.image_id):''}
-<div class="head">${tile(t.type==='join'?'send':'bot',t.type==='join'?'g5':'g1')}<div style="flex:1"><b>${esc(t.title)}</b><div class="mut">${esc(t.body)}</div></div><span class="pill">${ic('star')}${t.points}</span></div>
-<div class="row" style="margin-top:12px">${t.done?`<span class="st approved" style="display:inline-flex;gap:4px;align-items:center">${ic('check').replace('<svg','<svg width=14 height=14')} Completed</span>`:`
-<button class="soft full" onclick="open('${esc(t.link)}')">${ic('out')} ${t.type==='join'?'Join channel':'Open bot'}</button>
-<button class="full" onclick="run(()=>doTask(${t.id}))">${ic('check')} ${t.type==='join'?'Verify':'I did it'}</button>`}</div></div>`).join('')
-:`<div class="empty">${tile('tasks','g1')}No tasks yet.<br>Check back soon.</div>`}`}
-function profile(){if(!PR)return '<p class="mut">Loading...</p>';const p=PR,uu=(tg.initDataUnsafe&&tg.initDataUnsafe.user)||{};
-  const row=(k,v)=>`<div class="row" style="padding:10px 0;border-top:1px solid var(--line)"><span class="mut">${k}</span><b>${v}</b></div>`;
-  const link=`https://t.me/${S.bot}?start=ref_${S.me}`;
-  return `<div class="top"><div><span>My account</span><b>Profile</b></div></div>
-<div class="card" style="text-align:center"><div style="position:relative;width:88px;height:88px;margin:6px auto 12px;border-radius:50%;background:linear-gradient(135deg,#6c4cf1,#ff5c8a);color:#fff;display:grid;place-items:center;font-size:36px;font-weight:800;overflow:hidden">${esc((p.name||'U').trim().charAt(0).toUpperCase())}${uu.photo_url?`<img src="${esc(uu.photo_url)}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.remove()">`:''}</div>
-<b style="font-size:19px">${esc(p.name)}</b><div class="mut">${p.username?'@'+esc(p.username):'No username'}</div></div>
-<div class="row" style="gap:10px;margin-bottom:12px">${stat(p.points,'Points','g4','star')}${stat(p.invites,'Invites','g3','users')}</div>
-<div class="card" style="padding:4px 14px">${row('Name',esc(p.name))}${row('Username',p.username?'@'+esc(p.username):'-')}${row('Telegram ID',esc(p.id))}${row('Joined',new Date(p.created_at).toLocaleDateString())}
-${row('Points rank','#'+p.rank_points)}${row('Invites rank',p.invites?'#'+p.rank_invites:'-')}${row('Ads today',p.ads_today+' / '+S.ad_limit)}${row('Ads watched (total)',p.ads_total)}${row('Tasks completed',p.tasks_done)}${row('Invited by',p.invited_by_name?esc(p.invited_by_name):'-')}</div>
-<div class="card invite"><b>My invite link</b><div class="mut" style="word-break:break-all;margin:6px 0 12px">${link}</div>
-<div class="row"><button class="w full" onclick="tg.openTelegramLink('https://t.me/share/url?url='+encodeURIComponent('${link}'))">${ic('share')} Share</button>
-<button class="w full" onclick="navigator.clipboard.writeText('${link}').then(()=>toast('Link copied'))">${ic('copy')} Copy</button></div></div>
-<h2>${tile('inbox','g4')} My claims</h2>${(p.claims||[]).length?p.claims.map(c=>`<div class="card"><div class="row"><b>${esc(c.title)}</b><span class="pill">${ic('star')}${c.cost}</span></div><div class="row" style="margin-top:8px"><span class="st ${c.status}">${c.status}</span><span class="mut">${new Date(c.created_at).toLocaleDateString()}</span></div></div>`).join(''):`<div class="empty">${tile('inbox','g4')}No claims yet.</div>`}`}
-async function claim(id){await api('reward/'+id+'/claim','POST');await load();contact()}
-function contact(){const o=$('#ov');o.style.display='block';
-  o.innerHTML=`<div class="center"><div><span class="ico g3" style="width:64px;height:64px;margin:0 auto 16px">${ic('gift')}</span><h2 style="justify-content:center;margin:0 0 8px">Claim sent!</h2>
-<p class="mut">To receive your reward, contact the admin:<br><b style="font-size:17px;color:var(--ink)">@${esc(S.owner)}</b></p>
-<button class="full" onclick="tg.openTelegramLink('https://t.me/${esc(S.owner)}')">${ic('send')} Contact @${esc(S.owner)}</button>
-<button class="soft full" style="margin-top:10px" onclick="$('#ov').style.display='none'">Close</button></div></div>`}
-async function doTask(id){const r=await api('task/'+id,'POST');toast('+'+r.points+' points');await load()}
-async function watch(){
-  const r=await api('ad/start','POST');
-  await load();
-  toast('Watch the ad in the bot, then come back and collect your point');
-  open(r.link)}
-async function collectAd(){await api('ad/done','POST');toast('+1 point');await load()}
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&tab==='home')run(load)});
+[hidden] {
+    display: none !important;
+}
 
-// ---------- Admin ----------
-function upImg(id){const f=$('#'+id).files[0];if(!f)return null;
-  return new Promise(res=>{const im=new Image();im.onload=async()=>{const k=Math.min(1,800/Math.max(im.width,im.height)),c=document.createElement('canvas');
-    c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);
-    res((await api('admin/image','POST',{data:c.toDataURL('image/jpeg',.8).split(',')[1]})).id)};im.src=URL.createObjectURL(f)})}
-const v=id=>$('#'+id).value;
-const del=(k,id)=>run(async()=>{await api('admin/'+k+'/'+id,'DELETE');await load()});
-const add=(k,body)=>run(async()=>{await api('admin/'+k,'POST',body);toast('Saved');await load()});
-const addReward=()=>run(async()=>add('reward',{title:v('rt'),body:v('rb'),cost:v('rc'),min_invites:v('rm'),image_id:await upImg('ri')}));
-const addTask=()=>run(async()=>add('task',{type:v('tk'),title:v('tt'),body:v('tb'),channel:v('tch'),link:v('tl'),points:v('tp'),image_id:await upImg('ti')}));
-const saveSet=()=>add('settings',{ad_seconds:v('s1'),invite_points:v('s2'),daily_ad_limit:v('s3'),ad_confirm:v('s4'),checkin_base:v('s5'),checkin_step:v('s6'),checkin_max:v('s7'),maintenance:v('s8'),maintenance_msg:v('mmsg')});
-const addPromo=()=>run(async()=>{const r=await api('admin/promo','POST',{code:v('pcode'),points:v('ppts'),max_uses:v('pmax'),hours:v('phrs')});toast('Code created: '+r.code);await load()});
-const askYes=m=>new Promise(r=>tg.showConfirm?tg.showConfirm(m,r):r(confirm(m)));
-async function sendBroadcast(){const text=v('bt').trim();if(!text)throw new Error('Write a message first');
-  if(!await askYes('Send this message to ALL users?'))return;
-  const r=await api('admin/broadcast','POST',{text,button:$('#bb').checked}),st=$('#bst');
-  for(;;){const b=await api('admin/broadcast/'+r.id+'/step','POST',{});
-    st.textContent='Sending... '+(Number(b.sent)+Number(b.failed))+' / '+b.total;
-    if(b.status==='done'){st.textContent='Done. Sent '+b.sent+', failed '+b.failed+' (failed = users who blocked the bot or never started it)';await load();break}
-    await new Promise(z=>setTimeout(z,(b.wait||1)*1000))}}
-const act=(id,st)=>run(async()=>{await api('admin/claim/'+id,'POST',{status:st});await load()});
-const list=(k,a,g,i)=>a.map(x=>`<div class="card row" style="padding:10px 12px">${tile(i,g)}<span style="flex:1;font-weight:700">${esc(x.title)}</span><button class="bad" onclick="del('${k}',${x.id})">${ic('trash')}</button></div>`).join('');
-function tkChange(){const j=v('tk')==='join';$('#tchw').style.display=j?'block':'none';$('#tlw').style.display=j?'none':'block'}
-const stat=(n,l,g,i)=>`<div class="card head" style="flex:1;margin:0">${tile(i,g)}<div><b style="font-size:20px">${n}</b><div class="mut">${l}</div></div></div>`;
-function admin(){if(!A)return '<p class="mut">Loading...</p>';const s=A.settings,pend=(A.claims||[]).filter(c=>c.status==='pending').length;return `
-<div class="top"><div><span>Control center</span><b>Admin</b></div></div>
-<div class="row" style="gap:10px">${stat(A.users,'Users','g5','users')}${stat(pend,'Pending claims','g4','inbox')}</div>
-<h2>${tile('inbox','g4')} Reward claims</h2>${(A.claims||[]).length?(A.claims||[]).map(c=>`<div class="card"><div class="row"><b>${esc(c.title)}</b><span class="pill">${ic('star')}${c.cost}</span></div>
-<div class="mut">${esc(c.name)} ${c.username?'@'+esc(c.username):''} (ID ${c.user_id})</div>
-${c.status==='pending'?`<div class="row" style="margin-top:10px"><button class="ok full" onclick="act(${c.id},'approved')">${ic('check')} Approve</button><button class="bad full" onclick="act(${c.id},'rejected')">${ic('x')} Reject</button></div>`:`<div style="margin-top:8px"><span class="st ${c.status}">${c.status}</span></div>`}</div>`).join(''):`<div class="empty">${tile('inbox','g4')}No claims yet.</div>`}
-<h2>${tile('gift','g2')} Add reward</h2><div class="card"><label>Title</label><input id="rt"><label>Description</label><textarea id="rb" rows="3"></textarea>
-<label>Points needed</label><input id="rc" type="number" min="1"><label>Invites needed (0 = no invites needed)</label><input id="rm" type="number" min="0" value="0"><label>Photo</label><input id="ri" type="file" accept="image/*"><button class="full" onclick="addReward()">${ic('plus')} Save reward</button></div>${list('reward',A.rewards||[],'g2','gift')}
-<h2>${tile('tasks','g1')} Add task</h2><div class="card"><label>Task type</label><select id="tk" onchange="tkChange()"><option value="join">Join a channel</option><option value="bot">Open a bot (photo task)</option></select>
-<label>Title</label><input id="tt"><label>How it works</label><textarea id="tb" rows="3"></textarea>
-<div id="tchw"><label>Channel username (the bot must be admin there)</label><input id="tch" placeholder="@mychannel"></div>
-<div id="tlw" style="display:none"><label>Bot link</label><input id="tl" placeholder="https://t.me/somebot"></div>
-<label>Points</label><input id="tp" type="number" min="1" value="5"><label>Photo (optional)</label><input id="ti" type="file" accept="image/*">
-<button class="full" onclick="addTask()">${ic('plus')} Save task</button></div>${list('task',A.tasks||[],'g1','tasks')}
-<h2>${tile('send','g1')} Broadcast</h2><div class="card"><label>Message to all users</label><textarea id="bt" rows="4" maxlength="3500"></textarea>
-<label style="display:flex;gap:8px;align-items:center"><input id="bb" type="checkbox" checked style="width:auto;margin:0"> Add an "Open app" button</label>
-<button class="full" style="margin-top:12px" onclick="run(sendBroadcast)">${ic('send')} Send to everyone</button><div id="bst" class="mut" style="margin-top:10px"></div>
-${(A.broadcasts||[]).map(b=>`<div class="mut" style="margin-top:6px">${new Date(b.created_at).toLocaleString()}: sent ${b.sent}, failed ${b.failed} / ${b.total}${b.status==='done'?'':' (not finished)'}</div>`).join('')}</div>
-<h2>${tile('gift','g2')} Promo codes</h2><div class="card"><label>Code (leave empty for a random one)</label><input id="pcode" autocapitalize="characters" style="text-transform:uppercase">
-<label>Points</label><input id="ppts" type="number" min="1" value="10"><label>Max uses (0 = unlimited)</label><input id="pmax" type="number" min="0" value="0">
-<label>Expires after hours (0 = never)</label><input id="phrs" type="number" min="0" value="0"><button class="full" onclick="addPromo()">${ic('plus')} Create code</button></div>
-${(A.promos||[]).map(p=>`<div class="card row" style="padding:10px 12px"><div style="flex:1"><b>${esc(p.code)}</b><div class="mut">+${p.points} pts · used ${p.used}${p.max_uses?' / '+p.max_uses:''}${p.expires_at?' · expires '+new Date(p.expires_at).toLocaleString():''}</div></div>
-<button onclick="navigator.clipboard.writeText('${esc(p.code)}').then(()=>toast('Copied'))">${ic('copy')}</button><button class="bad" onclick="del('promo',${p.id})">${ic('trash')}</button></div>`).join('')}
-<h2>${tile('set','g3')} Settings</h2><div class="card"><label>Seconds to watch an ad</label><input id="s1" type="number" value="${s.ad_seconds}">
-<label>Points for each invited friend</label><input id="s2" type="number" value="${s.invite_points}">
-<label>Max ads per user per day</label><input id="s3" type="number" value="${s.daily_ad_limit}"><label>Require ad confirmation from the bot (1 = yes, 0 = no)</label><input id="s4" type="number" min="0" max="1" value="${s.ad_confirm}"><label>Check-in: points for day 1</label><input id="s5" type="number" value="${s.checkin_base}"><label>Check-in: extra points for each next day</label><input id="s6" type="number" value="${s.checkin_step}">
-<label>Check-in: bonus stops growing after day</label><input id="s7" type="number" min="1" value="${s.checkin_max}">
-<label>Maintenance mode</label><select id="s8"><option value="0" ${s.maintenance?'':'selected'}>Off</option><option value="1" ${s.maintenance?'selected':''}>ON - users see the message below</option></select>
-<label>Maintenance message</label><textarea id="mmsg" rows="3">${esc(s.maintenance_msg)}</textarea>
-<button class="full ok" onclick="saveSet()">${ic('check')} Save settings</button></div>`}
-load().catch(e=>{if(e.maint)return showMaint(e.message);$('#app').innerHTML=`<div class="center"><div><h2 style="justify-content:center">Could not load</h2><p class="mut">${esc(e.message)}</p><button onclick="location.reload()">Try again</button></div></div>`});
-</script></body></html>
+:root {
+    --page: #d9e3e8;
+    --paper: #fbfcfd;
+    --tint: #eef3f6;
+    --ink: #10222c;
+    --soft: #4d6270;
+    --line: #c3d0d8;
+    --accent: #0d6f8f;
+    --accent-2: #3fb0d4;
+    --ok: #1b8a57;
+    --bad: #c53b36;
+    --warn: #c98300;
+    --b1: #8fd3ea;
+    --b2: #cdb6ff;
+    --b3: #9fe8c3;
+    --shadow: 0 24px 50px -22px rgba(16,34,44,.45);
+}
+
+:root[data-theme="dark"] {
+    --page: #0b151b;
+    --paper: #15242d;
+    --tint: #1c303b;
+    --ink: #eaf1f4;
+    --soft: #97aab5;
+    --line: #2a3d48;
+    --accent: #4cb8d9;
+    --accent-2: #2a86a8;
+    --ok: #4fd08f;
+    --bad: #ff7a73;
+    --warn: #f0b440;
+    --b1: #1d6f8c;
+    --b2: #5a3fa8;
+    --b3: #1b7a55;
+    --shadow: 0 24px 50px -22px rgba(0,0,0,.8);
+}
+
+html, body {
+    min-height: 100%;
+}
+
+body {
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: max(20px, env(safe-area-inset-top))
+             20px
+             max(20px, env(safe-area-inset-bottom));
+    background: var(--page);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto,
+                 Arial, sans-serif;
+    overflow-x: hidden;
+}
+
+/* ---------- Background ---------- */
+
+.bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: .6;
+    animation: drift 18s ease-in-out infinite;
+}
+
+.b1 {
+    top: -80px;
+    left: -60px;
+    width: 280px;
+    height: 280px;
+    background: var(--b1);
+}
+
+.b2 {
+    right: -90px;
+    bottom: 8%;
+    width: 300px;
+    height: 300px;
+    background: var(--b2);
+    animation-delay: -6s;
+}
+
+.b3 {
+    bottom: -100px;
+    left: 18%;
+    width: 240px;
+    height: 240px;
+    background: var(--b3);
+    animation-delay: -12s;
+}
+
+#confetti {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: none;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* ---------- Premium emoji ---------- */
+
+.pe {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25em;
+    height: 1.25em;
+    vertical-align: -.25em;
+    line-height: 1;
+}
+
+.pe-media {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.pe-media svg,
+.pe-media video,
+.pe-media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* ---------- Card ---------- */
+
+.pass {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 390px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    background: var(--paper);
+    box-shadow: var(--shadow);
+    animation: rise .6s cubic-bezier(.2,.9,.3,1) both;
+}
+
+.pass-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 17px 22px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, var(--tint), transparent);
+    color: var(--soft);
+    font-size: 13px;
+}
+
+.pass-top strong {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 750;
+    letter-spacing: .2px;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 4px rgba(13,111,143,.18);
+    transition: background .3s;
+}
+
+.pass-body {
+    padding: 30px 24px 28px;
+    text-align: center;
+}
+
+/* ---------- Stamp ---------- */
+
+.stamp {
+    --stamp: var(--accent);
+    --glow: rgba(13,111,143,.28);
+    position: relative;
+    width: 132px;
+    height: 132px;
+    margin: 0 auto 26px;
+    color: var(--stamp);
+}
+
+.stamp::before {
+    position: absolute;
+    inset: -16px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--glow), transparent 68%);
+    content: "";
+    animation: pulse 2.6s ease-in-out infinite;
+}
+
+.stamp[data-state="success"] {
+    --stamp: var(--ok);
+    --glow: rgba(27,138,87,.3);
+}
+
+.stamp[data-state="banned"],
+.stamp[data-state="error"] {
+    --stamp: var(--bad);
+    --glow: rgba(197,59,54,.3);
+}
+
+.stamp[data-state="warning"] {
+    --stamp: var(--warn);
+    --glow: rgba(201,131,0,.3);
+}
+
+.stamp.pop {
+    animation: pop .55s cubic-bezier(.3,1.6,.5,1);
+}
+
+.frame {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.outer {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 3;
+}
+
+.inner {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    opacity: .5;
+}
+
+.tick {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    opacity: .4;
+}
+
+.stamp[data-state="loading"] .outer {
+    stroke-dasharray: 4 9;
+    stroke-linecap: round;
+    transform-origin: 66px 66px;
+    animation: spin 6s linear infinite;
+}
+
+.glyph {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.glyph .pe {
+    width: 68px;
+    height: 68px;
+    font-size: 58px;
+    animation: floaty 2.8s ease-in-out infinite;
+}
+
+.stamp[data-state="loading"] .g-load,
+.stamp[data-state="success"] .g-ok,
+.stamp[data-state="banned"] .g-ban,
+.stamp[data-state="warning"] .g-warn,
+.stamp[data-state="error"] .g-err,
+.stamp[data-state="join"] .g-join {
+    display: flex;
+}
+
+.stamp[data-state="banned"] .glyph .pe {
+    animation: wobble .9s ease-in-out infinite;
+}
+
+/* ---------- Text ---------- */
+
+h1 {
+    margin-bottom: 10px;
+    font-size: 25px;
+    line-height: 1.2;
+    font-weight: 800;
+    letter-spacing: -.3px;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+}
+
+.msg {
+    max-width: 32ch;
+    min-height: 44px;
+    margin: 0 auto;
+    color: var(--soft);
+    font-size: 14px;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+.chip {
+    display: inline-block;
+    max-width: 100%;
+    margin-top: 16px;
+    padding: 8px 14px;
+    border: 1px dashed var(--line);
+    border-radius: 999px;
+    background: var(--tint);
+    color: var(--ink);
+    font-size: 12.5px;
+    line-height: 1.5;
+    transition: opacity .25s;
+}
+
+.chip:empty {
+    display: none;
+}
+
+.muted {
+    color: var(--soft);
+    font-size: 12.5px;
+    line-height: 1.6;
+}
+
+/* ---------- Check list (multi check) ---------- */
+
+.steps {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 18px;
+    list-style: none;
+    text-align: left;
+}
+
+.steps li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--tint);
+    font-size: 13.5px;
+    transition: border-color .25s, background .25s;
+}
+
+.steps .lbl {
+    flex: 1;
+}
+
+.steps .st {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    color: var(--soft);
+}
+
+.steps .st .pe {
+    width: 24px;
+    height: 24px;
+}
+
+.spin {
+    width: 16px;
+    height: 16px;
+    border: 2.5px solid var(--line);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+}
+
+.steps li:nth-child(2) .spin { animation-delay: -.2s; }
+.steps li:nth-child(3) .spin { animation-delay: -.4s; }
+.steps li:nth-child(4) .spin { animation-delay: -.6s; }
+
+.steps li.ok {
+    border-color: var(--ok);
+}
+
+.steps li.bad {
+    border-color: var(--bad);
+    background: color-mix(in srgb, var(--bad) 10%, var(--tint));
+}
+
+.steps li.skip {
+    opacity: .55;
+}
+
+.steps li.pop .st {
+    animation: pop .45s cubic-bezier(.3,1.6,.5,1);
+}
+
+/* ---------- Required channels (join screen) ---------- */
+
+.join {
+    margin-top: 18px;
+    text-align: left;
+}
+
+.ch {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    padding: 11px 12px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--tint);
+}
+
+.ch.joined {
+    border-color: var(--ok);
+}
+
+.ch .t {
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.ch .t small {
+    display: block;
+    margin-top: 2px;
+    color: var(--soft);
+    font-size: 11.5px;
+    font-weight: 500;
+}
+
+.ch button {
+    flex-shrink: 0;
+    padding: 9px 14px;
+    border: 0;
+    border-radius: 11px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.ch button.rm {
+    border: 1.5px solid var(--bad);
+    background: transparent;
+    color: var(--bad);
+}
+
+/* ---------- Admin box ---------- */
+
+.adminbox {
+    margin-top: 18px;
+    text-align: left;
+}
+
+.adminbox h2 {
+    margin-bottom: 6px;
+    font-size: 17px;
+}
+
+.adminbox .ch {
+    margin-top: 8px;
+}
+
+.field {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    padding: 12px;
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    background: var(--paper);
+    color: var(--ink);
+    font: inherit;
+    font-size: 14px;
+}
+
+.field:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.formmsg {
+    min-height: 20px;
+    margin-top: 10px;
+    font-size: 12.5px;
+    line-height: 1.6;
+}
+
+.formmsg.good { color: var(--ok); }
+.formmsg.problem { color: var(--bad); }
+
+/* ---------- Ban question (runaway button) ---------- */
+
+.ask {
+    margin-top: 22px;
+    padding: 16px 14px 14px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--tint);
+}
+
+.ask-q {
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.arena {
+    position: relative;
+    height: 128px;
+    margin-top: 10px;
+}
+
+.choice {
+    position: absolute;
+    top: 38px;
+    min-width: 116px;
+    height: 52px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 15px;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: left .32s cubic-bezier(.34,1.56,.64,1),
+                top .32s cubic-bezier(.34,1.56,.64,1);
+}
+
+.choice.yes {
+    left: 0;
+    background: linear-gradient(135deg, #1b8a57, #3fcf8e);
+    color: #fff;
+    box-shadow: 0 10px 20px -10px rgba(27,138,87,.8);
+}
+
+.choice.yes.caught {
+    animation: glow 1.1s ease-in-out infinite;
+}
+
+.choice.yes:disabled {
+    opacity: .6;
+    cursor: default;
+    animation: none;
+}
+
+.choice.no {
+    right: 0;
+    border: 1.5px solid var(--bad);
+    background: transparent;
+    color: var(--bad);
+}
+
+.choice.hop {
+    animation: hop .45s ease-out;
+}
+
+.taunt {
+    min-height: 20px;
+    color: var(--soft);
+    font-size: 12.5px;
+    line-height: 1.6;
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+    display: none;
+    width: 100%;
+    min-height: 52px;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    margin-top: 24px;
+    padding: 14px 16px;
+    border-radius: 15px;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.btn .pe {
+    width: 22px;
+    height: 22px;
+    vertical-align: middle;
+}
+
+.btn:active {
+    transform: scale(.98);
+}
+
+.btn:focus-visible,
+.choice:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 3px;
+}
+
+.btn:disabled {
+    opacity: .6;
+    cursor: default;
+}
+
+.btn.ok {
+    border: 0;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    box-shadow: 0 12px 24px -12px var(--accent);
+}
+
+.btn.retry {
+    border: 1.5px solid var(--line);
+    background: transparent;
+    color: var(--ink);
+}
+
+/* ---------- Footer ---------- */
+
+.tear {
+    height: 0;
+    margin: 0 20px;
+    border-top: 2px dashed var(--line);
+}
+
+.pass-foot {
+    padding: 17px 22px 20px;
+    color: var(--soft);
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+/* ---------- Animations ---------- */
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes rise {
+    from { opacity: 0; transform: translateY(18px) scale(.97); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes pop {
+    0% { transform: scale(.7); }
+    100% { transform: scale(1); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: .65; transform: scale(.96); }
+    50% { opacity: 1; transform: scale(1.04); }
+}
+
+@keyframes floaty {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+@keyframes wobble {
+    0%, 100% { transform: rotate(0); }
+    25% { transform: rotate(-9deg); }
+    75% { transform: rotate(9deg); }
+}
+
+@keyframes drift {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(34px, 24px) scale(1.12); }
+}
+
+@keyframes hop {
+    0% { transform: translateY(0) rotate(0) scale(1); }
+    35% { transform: translateY(-30px) rotate(-10deg) scale(1.12); }
+    70% { transform: translateY(4px) rotate(6deg) scale(.96); }
+    100% { transform: translateY(0) rotate(0) scale(1); }
+}
+
+@keyframes glow {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 10px 20px -10px rgba(27,138,87,.8);
+    }
+    50% {
+        transform: scale(1.07);
+        box-shadow: 0 0 0 7px rgba(63,207,142,.22),
+                    0 10px 24px -8px rgba(27,138,87,.9);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="bg" aria-hidden="true">
+    <i class="blob b1"></i>
+    <i class="blob b2"></i>
+    <i class="blob b3"></i>
+</div>
+
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<main class="pass">
+
+    <header class="pass-top">
+        <strong>
+            <span class="pe" data-id="6266969287638913443">⭐</span>
+            Account Verification
+        </strong>
+        <span class="dot" id="dot"></span>
+    </header>
+
+    <section class="pass-body">
+
+        <div class="stamp" id="stamp" data-state="loading"
+             role="img" aria-label="Verification status">
+
+            <svg class="frame" viewBox="0 0 132 132" aria-hidden="true">
+                <circle class="outer" cx="66" cy="66" r="62"/>
+                <circle class="inner" cx="66" cy="66" r="52"/>
+                <circle class="tick" cx="66" cy="66" r="57"
+                        stroke-dasharray="1 7"/>
+            </svg>
+
+            <div class="glyph g-load" aria-hidden="true">
+                <span class="pe" data-id="6266905902511559661">🥳</span>
+            </div>
+
+            <div class="glyph g-ok" aria-hidden="true">
+                <span class="pe" data-id="6267008582294705964">✅</span>
+            </div>
+
+            <div class="glyph g-ban" aria-hidden="true">
+                <span class="pe" data-id="6264989883241076562">🚫</span>
+            </div>
+
+            <div class="glyph g-warn" aria-hidden="true">
+                <span class="pe" data-id="6267039884016358504">⚠️</span>
+            </div>
+
+            <div class="glyph g-err" aria-hidden="true">
+                <span class="pe" data-id="6267262260243076354">🛑</span>
+            </div>
+
+            <div class="glyph g-join" aria-hidden="true">
+                <span class="pe" data-id="6267129592998270736">📣</span>
+            </div>
+        </div>
+
+        <h1 id="title">Welcome!</h1>
+
+        <p class="msg" id="message" aria-live="polite">
+            Please wait while we securely check your account.
+        </p>
+
+        <p class="chip" id="joke"></p>
+
+        <ul class="steps" id="steps" hidden></ul>
+
+        <div class="join" id="join" hidden>
+            <div id="joinList"></div>
+
+            <button class="btn ok" id="checkBtn" type="button">
+                <span class="pe" data-id="6267225207560214192">✔️</span>
+                I joined, check again
+            </button>
+        </div>
+
+        <div class="ask" id="ask" hidden>
+            <p class="ask-q" id="askQ">Want to be unbanned?</p>
+
+            <div class="arena" id="arena">
+                <button class="choice yes" id="yesBtn" type="button">Yes</button>
+                <button class="choice no" id="noBtn" type="button">No</button>
+            </div>
+
+            <p class="taunt" id="taunt" aria-live="polite"></p>
+        </div>
+
+        <button class="btn ok" id="doneBtn" type="button">
+            <span class="pe" data-id="6267008582294705964">✅</span>
+            Close
+        </button>
+
+        <button class="btn retry" id="retryBtn" type="button">
+            <span class="pe" data-id="6264699552041801361">➡️</span>
+            Try again
+        </button>
+
+        <button class="btn retry" id="adminBtn" type="button">
+            <span class="pe" data-id="6267129592998270736">📣</span>
+            Manage required channels
+        </button>
+
+        <div class="adminbox" id="adminBox" hidden>
+            <h2>Required channels</h2>
+            <p class="muted">
+                Users must join all of these channels before they can verify.
+                The bot must be an admin of each channel.
+            </p>
+
+            <div id="chList"></div>
+
+            <input class="field" id="chTitle" maxlength="60"
+                   placeholder="Title (example: Our News Channel)">
+
+            <input class="field" id="chLink"
+                   placeholder="Channel link (https://t.me/yourchannel)"
+                   autocapitalize="off" autocorrect="off" spellcheck="false">
+
+            <input class="field" id="chId" inputmode="numeric"
+                   placeholder="Channel ID (private channels only, -100...)">
+
+            <button class="btn ok" id="chAdd" type="button"
+                    style="display:flex">
+                <span class="pe" data-id="6267225207560214192">✔️</span>
+                Add channel
+            </button>
+
+            <p class="formmsg" id="chMsg" aria-live="polite"></p>
+
+            <button class="btn retry" id="chBack" type="button"
+                    style="display:flex;margin-top:4px">
+                Back
+            </button>
+        </div>
+
+    </section>
+
+    <div class="tear"></div>
+
+    <footer class="pass-foot">
+        <span class="pe" data-id="6266794310671275367">💬</span>
+        Secure account verification. If you believe a ban is a mistake,
+        contact the administrator.
+    </footer>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+
+<script>
+"use strict";
+
+// ==========================================
+// TELEGRAM WEB APP
+// ==========================================
+
+const tg = window.Telegram?.WebApp || null;
+
+if (tg) {
+    try {
+        tg.ready();
+        tg.expand();
+    } catch (error) {
+        console.warn("Telegram WebApp initialization failed.");
+    }
+}
+
+function haptic(type) {
+    try {
+        if (!tg || !tg.HapticFeedback) return;
+
+        if (type === "success" || type === "error") {
+            tg.HapticFeedback.notificationOccurred(type);
+        } else {
+            tg.HapticFeedback.impactOccurred("light");
+        }
+    } catch (error) {}
+}
+
+// ==========================================
+// THEME
+// ==========================================
+
+function applyTheme() {
+    const dark = tg
+        ? tg.colorScheme === "dark"
+        : window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    document.documentElement.dataset.theme =
+        dark ? "dark" : "light";
+}
+
+applyTheme();
+
+if (tg && typeof tg.onEvent === "function") {
+    tg.onEvent("themeChanged", applyTheme);
+}
+
+// ==========================================
+// CONFIGURATION
+// ==========================================
+
+// Must match your deployed backend.
+const API_BASE = "https://mrabdubot.vercel.app";
+
+// How many times the "Yes" button escapes before
+// it lets the user catch it (then it really unbans).
+const DODGES_NEEDED = 5;
+
+const $ = id => document.getElementById(id);
+
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+const reduceMotion =
+    window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const USER_NAME =
+    (tg && tg.initDataUnsafe && tg.initDataUnsafe.user &&
+     tg.initDataUnsafe.user.first_name) || "";
+
+let isAdminUser = false;
+
+// ==========================================
+// PREMIUM EMOJIS (ZNV CLAN pack)
+// The emoji files come from the backend
+// (/api/emoji/:id). If loading fails, the normal
+// emoji written inside the element stays visible.
+// ==========================================
+
+const EM = {
+    party:    ["6266905902511559661", "🥳"],
+    eyes:     ["6267186570034419608", "👀"],
+    ok:       ["6267008582294705964", "✅"],
+    bad:      ["6267262260243076354", "🛑"],
+    ban:      ["6264989883241076562", "🚫"],
+    warn:     ["6267039884016358504", "⚠️"],
+    star:     ["6266969287638913443", "⭐"],
+    spark:    ["6267118537752450044", "🌟"],
+    chat:     ["6266794310671275367", "💬"],
+    mega:     ["6267129592998270736", "📣"],
+    arrow:    ["6264699552041801361", "➡️"],
+    check:    ["6267225207560214192", "✔️"],
+    wait:     ["6267229004311303657", "⌛"],
+    cool:     ["6264546492292273861", "😎"],
+    laugh:    ["6267086316907795595", "🤣"],
+    smile:    ["6266802140396655915", "😄"],
+    fire:     ["6264785189394717307", "🔥"],
+    bolt:     ["6267107057304868214", "⚡️"],
+    shy:      ["6264592461327241791", "🫣"],
+    dizzy:    ["6266950140674708467", "😵‍💫"],
+    sleep:    ["6266898047016375762", "😴"],
+    cry:      ["6267237615720731788", "😭"],
+    trophy:   ["6266973397922616654", "🏆"],
+    shake:    ["6264720734820505831", "🤝"],
+    money:    ["6267068789146260253", "💰"],
+    thought:  ["6266764202950530136", "💭"]
+};
+
+const EMOJI_CACHE = new Map();
+
+function fetchEmoji(id) {
+    if (EMOJI_CACHE.has(id)) {
+        return EMOJI_CACHE.get(id);
+    }
+
+    const promise = (async () => {
+        const response = await fetch(`${API_BASE}/api/emoji/${id}`);
+
+        if (!response.ok) {
+            throw new Error("Emoji not available.");
+        }
+
+        const type = (
+            response.headers.get("content-type") || ""
+        ).toLowerCase();
+
+        if (type.includes("json")) {
+            return { kind: "lottie", text: await response.text() };
+        }
+
+        const blob = await response.blob();
+
+        return {
+            kind: type.includes("video") ? "video" : "image",
+            url: URL.createObjectURL(blob)
+        };
+    })();
+
+    EMOJI_CACHE.set(id, promise);
+
+    promise.catch(() => EMOJI_CACHE.delete(id));
+
+    return promise;
+}
+
+async function mountPremium(el) {
+    const id = el.dataset.id;
+
+    if (!id || el.dataset.mounted) return;
+
+    el.dataset.mounted = "1";
+
+    try {
+        const asset = await fetchEmoji(id);
+        const holder = document.createElement("span");
+
+        holder.className = "pe-media";
+
+        if (asset.kind === "lottie") {
+            if (!window.lottie) throw new Error("Lottie missing.");
+
+            el._anim = window.lottie.loadAnimation({
+                container: holder,
+                renderer: "svg",
+                loop: true,
+                autoplay: true,
+                animationData: JSON.parse(asset.text)
+            });
+
+        } else if (asset.kind === "video") {
+            const video = document.createElement("video");
+
+            video.src = asset.url;
+            video.muted = true;
+            video.loop = true;
+            video.autoplay = true;
+            video.playsInline = true;
+            video.setAttribute("playsinline", "");
+
+            // If the device cannot play it, keep the normal emoji.
+            video.addEventListener("error", () => {
+                holder.remove();
+                el.textContent = el.dataset.fallback || "";
+            });
+
+            el._video = video;
+            holder.appendChild(video);
+
+        } else {
+            const image = document.createElement("img");
+
+            image.src = asset.url;
+            image.alt = "";
+            holder.appendChild(image);
+        }
+
+        el.dataset.fallback = el.textContent;
+        el.textContent = "";
+        el.appendChild(holder);
+
+        syncAnimations();
+
+    } catch (error) {
+        // Keep the normal emoji.
+    }
+}
+
+// Only visible emojis animate (saves battery).
+function syncAnimations() {
+    document.querySelectorAll(".pe").forEach(el => {
+        const visible = el.offsetParent !== null;
+
+        if (el._anim) {
+            if (visible) el._anim.play();
+            else el._anim.pause();
+        }
+
+        if (el._video) {
+            if (visible) el._video.play().catch(() => {});
+            else el._video.pause();
+        }
+    });
+}
+
+// Creates a premium emoji element.
+function emojiEl(key) {
+    const span = document.createElement("span");
+
+    span.className = "pe";
+    span.dataset.id = EM[key][0];
+    span.textContent = EM[key][1];
+
+    return span;
+}
+
+// Writes text and puts a premium emoji after it.
+function setRich(el, text, key) {
+    el.textContent = text;
+
+    if (!key || !EM[key]) return;
+
+    el.appendChild(document.createTextNode(" "));
+
+    const span = emojiEl(key);
+
+    el.appendChild(span);
+    mountPremium(span);
+}
+
+document.querySelectorAll(".pe").forEach(mountPremium);
+
+// ==========================================
+// FUNNY TEXTS  ([text, emoji])
+// ==========================================
+
+const LOADING_LINES = [
+    ["Asking Telegram if you are a real human", "eyes"],
+    ["Counting the hamsters that power our server", "smile"],
+    ["Looking for sneaky second accounts", "eyes"],
+    ["Polishing your verification badge", "spark"],
+    ["Almost there... probably", "smile"]
+];
+
+const SUCCESS_LINES = [
+    ["Certified human. Beep boop... wait, no beep", "cool"],
+    ["Your account is now shinier than a new coin", "money"],
+    ["Plot twist: that was easy", "cool"]
+];
+
+const ERROR_LINES = [
+    ["The hamsters tripped over a cable", "dizzy"],
+    ["Our server went to get coffee", "sleep"],
+    ["Even robots have bad days", "cry"]
+];
+
+const WARNING_LINES = [
+    ["Wrong door, friend", "shy"],
+    ["This page is shy outside Telegram", "shy"]
+];
+
+const BANNED_LINES = [
+    ["Plot twist nobody wanted", "thought"],
+    ["The ban hammer has spoken", "bad"],
+    ["Oof. That one hurts", "cry"]
+];
+
+const JOIN_LINES = [
+    ["One small step before you enter", "mega"],
+    ["Join them all, then press the check button", "arrow"]
+];
+
+function pick(list) {
+    return list[Math.floor(Math.random() * list.length)];
+}
+
+let loadingTimer = null;
+let loadingIndex = 0;
+
+function startLoadingLines() {
+    stopLoadingLines();
+
+    loadingIndex = 0;
+    setRich($("joke"), LOADING_LINES[0][0], LOADING_LINES[0][1]);
+
+    loadingTimer = setInterval(() => {
+        loadingIndex = (loadingIndex + 1) % LOADING_LINES.length;
+
+        setRich(
+            $("joke"),
+            LOADING_LINES[loadingIndex][0],
+            LOADING_LINES[loadingIndex][1]
+        );
+    }, 2200);
+}
+
+function stopLoadingLines() {
+    if (loadingTimer) {
+        clearInterval(loadingTimer);
+        loadingTimer = null;
+    }
+}
+
+// ==========================================
+// MULTI CHECK LIST
+// While the server works, every check spins.
+// When the answer arrives, the real results
+// are shown one by one.
+// ==========================================
+
+const STEPS = [
+    ["telegram", "Checking your Telegram account"],
+    ["device", "Checking multiple accounts"],
+    ["network", "Checking VPN and proxy"],
+    ["channels", "Checking required channels"]
+];
+
+function buildSteps() {
+    const list = $("steps");
+
+    list.innerHTML = "";
+
+    STEPS.forEach(([id, label]) => {
+        const item = document.createElement("li");
+        const text = document.createElement("span");
+        const state = document.createElement("span");
+        const spinner = document.createElement("i");
+
+        item.dataset.id = id;
+        text.className = "lbl";
+        text.textContent = label;
+        state.className = "st";
+        spinner.className = "spin";
+
+        state.appendChild(spinner);
+        item.appendChild(text);
+        item.appendChild(state);
+        list.appendChild(item);
+    });
+
+    list.hidden = false;
+}
+
+async function revealSteps(checks) {
+    for (const check of checks) {
+        const item = document.querySelector(
+            `#steps li[data-id="${check.id}"]`
+        );
+
+        if (!item) continue;
+
+        await sleep(reduceMotion ? 0 : check.ok === null ? 120 : 380);
+
+        const state = item.querySelector(".st");
+
+        state.innerHTML = "";
+
+        if (check.ok === null) {
+            state.textContent = "–";
+            item.className = "skip";
+            continue;
+        }
+
+        const icon = emojiEl(check.ok ? "ok" : "bad");
+
+        state.appendChild(icon);
+        mountPremium(icon);
+
+        item.className = (check.ok ? "ok" : "bad") + " pop";
+
+        if (!check.ok) haptic("error");
+    }
+
+    await sleep(reduceMotion ? 0 : 250);
+}
+
+// ==========================================
+// STATE
+// ==========================================
+
+const DOT_COLORS = {
+    loading: "var(--accent)",
+    success: "var(--ok)",
+    banned: "var(--bad)",
+    warning: "var(--warn)",
+    error: "var(--bad)",
+    join: "var(--accent)"
+};
+
+function setState(state, title, message) {
+    const stamp = $("stamp");
+
+    stamp.dataset.state = state;
+
+    stamp.classList.remove("pop");
+    void stamp.offsetWidth;
+    stamp.classList.add("pop");
+
+    $("dot").style.background =
+        DOT_COLORS[state] || DOT_COLORS.loading;
+
+    $("title").textContent = title;
+    $("message").textContent = message;
+
+    $("doneBtn").style.display =
+        state === "success" ? "flex" : "none";
+
+    $("retryBtn").style.display =
+        state === "error" || state === "warning"
+            ? "flex"
+            : "none";
+
+    $("adminBtn").style.display =
+        state === "success" && isAdminUser && $("adminBox").hidden
+            ? "flex"
+            : "none";
+
+    if (state !== "success") {
+        $("adminBox").hidden = true;
+    }
+
+    $("join").hidden = state !== "join";
+
+    if (state === "warning" || state === "error") {
+        $("steps").hidden = true;
+    }
+
+    if (state === "loading") {
+        startLoadingLines();
+    } else {
+        stopLoadingLines();
+
+        const lines = {
+            success: SUCCESS_LINES,
+            error: ERROR_LINES,
+            warning: WARNING_LINES,
+            banned: BANNED_LINES,
+            join: JOIN_LINES
+        }[state];
+
+        if (lines) {
+            const line = pick(lines);
+            setRich($("joke"), line[0], line[1]);
+        } else {
+            $("joke").textContent = "";
+        }
+    }
+
+    if (state === "banned") {
+        resetAsk();
+        $("ask").hidden = false;
+    } else {
+        $("ask").hidden = true;
+    }
+
+    syncAnimations();
+}
+
+// ==========================================
+// REQUIRED CHANNELS: JOIN SCREEN
+// ==========================================
+
+function openChannel(link) {
+    try {
+        if (tg && typeof tg.openTelegramLink === "function") {
+            tg.openTelegramLink(link);
+        } else {
+            window.open(link, "_blank");
+        }
+    } catch (error) {
+        window.open(link, "_blank");
+    }
+}
+
+function showJoin(channels) {
+    const box = $("joinList");
+
+    box.innerHTML = "";
+
+    channels.forEach(channel => {
+        const row = document.createElement("div");
+        const title = document.createElement("span");
+
+        row.className = "ch" + (channel.joined ? " joined" : "");
+
+        title.className = "t";
+        title.textContent = channel.title;
+
+        row.appendChild(emojiEl("mega"));
+        row.appendChild(title);
+
+        if (channel.joined) {
+            row.appendChild(emojiEl("check"));
+        } else {
+            const button = document.createElement("button");
+
+            button.type = "button";
+            button.textContent = "Join";
+            button.addEventListener("click", () => {
+                haptic("light");
+                openChannel(channel.link);
+            });
+
+            row.appendChild(button);
+        }
+
+        box.appendChild(row);
+    });
+
+    box.querySelectorAll(".pe").forEach(mountPremium);
+
+    $("checkBtn").style.display = "flex";
+}
+
+// ==========================================
+// ADMIN PANEL: MANAGE REQUIRED CHANNELS
+// Only works for the admin IDs set on the server.
+// ==========================================
+
+async function adminApi(body) {
+    const response = await fetch(`${API_BASE}/api/channels`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "x-init-data": tg ? tg.initData : ""
+        },
+        body: JSON.stringify(body)
+    });
+
+    let data;
+
+    try {
+        data = await response.json();
+    } catch {
+        throw new Error("Invalid response.");
+    }
+
+    if (!response.ok || data.ok !== true) {
+        throw new Error(data.message || "Something went wrong.");
+    }
+
+    return data;
+}
+
+function showFormMessage(text, good) {
+    const el = $("chMsg");
+
+    el.textContent = text;
+    el.className = "formmsg " + (good ? "good" : "problem");
+}
+
+function renderChannels(channels) {
+    const box = $("chList");
+
+    box.innerHTML = "";
+
+    if (!channels.length) {
+        const empty = document.createElement("p");
+
+        empty.className = "muted";
+        empty.style.marginTop = "10px";
+        empty.textContent = "No required channels yet.";
+        box.appendChild(empty);
+        return;
+    }
+
+    channels.forEach(channel => {
+        const row = document.createElement("div");
+        const title = document.createElement("span");
+        const link = document.createElement("small");
+        const remove = document.createElement("button");
+
+        row.className = "ch";
+        title.className = "t";
+        title.textContent = channel.title;
+        link.textContent = channel.link;
+        title.appendChild(link);
+
+        remove.type = "button";
+        remove.className = "rm";
+        remove.textContent = "Remove";
+        remove.addEventListener("click", async () => {
+            remove.disabled = true;
+
+            try {
+                const data = await adminApi({
+                    action: "delete",
+                    id: channel.id
+                });
+
+                renderChannels(data.channels);
+                showFormMessage("Channel removed.", true);
+            } catch (error) {
+                remove.disabled = false;
+                showFormMessage(error.message, false);
+            }
+        });
+
+        row.appendChild(emojiEl("mega"));
+        row.appendChild(title);
+        row.appendChild(remove);
+        box.appendChild(row);
+    });
+
+    box.querySelectorAll(".pe").forEach(mountPremium);
+}
+
+async function openAdmin() {
+    $("adminBox").hidden = false;
+    $("adminBtn").style.display = "none";
+    showFormMessage("", true);
+
+    try {
+        const data = await adminApi({ action: "list" });
+        renderChannels(data.channels);
+    } catch (error) {
+        showFormMessage(error.message, false);
+    }
+
+    syncAnimations();
+}
+
+$("adminBtn").addEventListener("click", openAdmin);
+
+$("chBack").addEventListener("click", () => {
+    $("adminBox").hidden = true;
+    $("adminBtn").style.display = "flex";
+});
+
+$("chAdd").addEventListener("click", async () => {
+    const button = $("chAdd");
+
+    button.disabled = true;
+    showFormMessage("Checking the channel...", true);
+
+    try {
+        const data = await adminApi({
+            action: "add",
+            title: $("chTitle").value,
+            link: $("chLink").value,
+            chat_id: $("chId").value
+        });
+
+        renderChannels(data.channels);
+
+        $("chTitle").value = "";
+        $("chLink").value = "";
+        $("chId").value = "";
+
+        showFormMessage("Channel added.", true);
+        haptic("success");
+
+    } catch (error) {
+        showFormMessage(error.message, false);
+        haptic("error");
+
+    } finally {
+        button.disabled = false;
+    }
+});
+
+// ==========================================
+// BAN QUESTION: THE RUNAWAY "YES" BUTTON
+// It escapes a few times (just an animation),
+// then it can be caught and really unbans.
+// ==========================================
+
+const arena = $("arena");
+const yesBtn = $("yesBtn");
+const noBtn = $("noBtn");
+
+const TAUNTS = [
+    ["Nice try", "cool"],
+    ["Too slow!", "wait"],
+    ["Catch me if you can", "bolt"],
+    ["Skill issue", "cool"],
+    ["It is faster than your Wi-Fi", "bolt"],
+    ["The button has trust issues", "laugh"],
+    ["Almost... not really", "shy"],
+    ["Is that all you got?", "fire"],
+    ["Boing!", "bolt"],
+    ["You blinked. I moved", "eyes"]
+];
+
+let dodges = 0;
+let lastDodge = 0;
+let lastTaunt = -1;
+let caught = false;
+let unbanning = false;
+
+function resetAsk() {
+    dodges = 0;
+    lastTaunt = -1;
+    caught = false;
+    unbanning = false;
+
+    $("askQ").textContent = "Want to be unbanned?";
+    setRich($("taunt"), "Go on, press Yes. We dare you", "cool");
+
+    arena.style.display = "";
+
+    yesBtn.disabled = false;
+    yesBtn.classList.remove("caught", "hop");
+    yesBtn.style.left = "";
+    yesBtn.style.top = "";
+}
+
+function placeYes(pointerX, pointerY) {
+    const box = arena.getBoundingClientRect();
+
+    const width = yesBtn.offsetWidth;
+    const height = yesBtn.offsetHeight;
+
+    const maxX = Math.max(0, box.width - width);
+    const maxY = Math.max(0, box.height - height);
+
+    const no = noBtn.getBoundingClientRect();
+
+    const noX = no.left - box.left;
+    const noY = no.top - box.top;
+
+    let best = { x: 0, y: 0 };
+    let bestScore = -Infinity;
+
+    for (let i = 0; i < 16; i++) {
+        const x = Math.random() * maxX;
+        const y = Math.random() * maxY;
+
+        const centerX = x + width / 2;
+        const centerY = y + height / 2;
+
+        const distance = pointerX === null
+            ? 200
+            : Math.hypot(centerX - pointerX, centerY - pointerY);
+
+        const overlap =
+            x < noX + no.width + 8 &&
+            x + width + 8 > noX &&
+            y < noY + no.height + 8 &&
+            y + height + 8 > noY;
+
+        const score = distance - (overlap ? 1000 : 0);
+
+        if (score > bestScore) {
+            bestScore = score;
+            best = { x, y };
+        }
+    }
+
+    yesBtn.style.left = best.x + "px";
+    yesBtn.style.top = best.y + "px";
+}
+
+function showTaunt() {
+    let taunt;
+
+    if (dodges === 1) {
+        taunt = ["Whoa! The button moved", "shy"];
+    } else {
+        let index;
+
+        do {
+            index = Math.floor(Math.random() * TAUNTS.length);
+        } while (index === lastTaunt);
+
+        lastTaunt = index;
+        taunt = TAUNTS[index];
+    }
+
+    setRich($("taunt"), `${taunt[0]}  (escaped ${dodges}×)`, taunt[1]);
+}
+
+function becomeCatchable() {
+    caught = true;
+
+    // Back to the normal, reachable spot.
+    yesBtn.style.left = "";
+    yesBtn.style.top = "";
+
+    yesBtn.classList.remove("hop");
+    yesBtn.classList.add("caught");
+
+    setRich(
+        $("taunt"),
+        "Okay okay, you earned it. Now press Yes!",
+        "trophy"
+    );
+
+    haptic("success");
+}
+
+function dodge(event) {
+    if (caught || unbanning) return;
+
+    const now = Date.now();
+
+    if (now - lastDodge < 180) return;
+
+    lastDodge = now;
+    dodges++;
+
+    if (dodges >= DODGES_NEEDED) {
+        becomeCatchable();
+        return;
+    }
+
+    const box = arena.getBoundingClientRect();
+
+    let pointerX = null;
+    let pointerY = null;
+
+    if (event && typeof event.clientX === "number") {
+        pointerX = event.clientX - box.left;
+        pointerY = event.clientY - box.top;
+    }
+
+    placeYes(pointerX, pointerY);
+
+    yesBtn.classList.remove("hop");
+    void yesBtn.offsetWidth;
+    yesBtn.classList.add("hop");
+
+    showTaunt();
+    haptic("light");
+}
+
+["pointerenter", "pointerdown"].forEach(name => {
+    yesBtn.addEventListener(name, dodge);
+});
+
+yesBtn.addEventListener("touchstart", event => {
+    if (caught || unbanning) return;
+
+    event.preventDefault();
+    dodge(event.touches && event.touches[0]);
+}, { passive: false });
+
+yesBtn.addEventListener("focus", () => dodge());
+
+yesBtn.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!caught) {
+        dodge(event);
+        return;
+    }
+
+    unbanSelf();
+});
+
+noBtn.addEventListener("click", () => {
+    if (unbanning) return;
+
+    setRich($("askQ"), "Respect.", "shake");
+    $("taunt").textContent =
+        "You stay banned. If it is a mistake, contact the administrator.";
+
+    arena.style.display = "none";
+    haptic("light");
+});
+
+window.addEventListener("resize", () => {
+    if (!caught) {
+        yesBtn.style.left = "";
+        yesBtn.style.top = "";
+    }
+});
+
+// ==========================================
+// REAL UNBAN (after the button is caught)
+// Only automatic bans can be removed here.
+// The check runs again right after.
+// ==========================================
+
+async function unbanSelf() {
+    if (unbanning) return;
+
+    unbanning = true;
+    yesBtn.disabled = true;
+
+    setRich($("taunt"), "Unbanning you...", "wait");
+
+    try {
+        if (!tg || !tg.initData) {
+            $("taunt").textContent =
+                "Open this page from the VERIFY button in the bot.";
+            yesBtn.disabled = false;
+            return;
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(
+            () => controller.abort(),
+            15000
+        );
+
+        let response;
+
+        try {
+            response = await fetch(`${API_BASE}/api/unban-self`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-init-data": tg.initData,
+                    "x-device": getDeviceId()
+                },
+                signal: controller.signal
+            });
+        } finally {
+            clearTimeout(timeoutId);
+        }
+
+        let data;
+
+        try {
+            data = await response.json();
+        } catch {
+            throw new Error("Invalid response.");
+        }
+
+        if (response.ok && data.ok === true) {
+            haptic("success");
+
+            unbanning = false;
+
+            // Run the verification again from the start.
+            await verify();
+            return;
+        }
+
+        if (data.status === "admin_ban") {
+            setRich($("askQ"), "Sorry", "cry");
+            $("taunt").textContent =
+                data.message ||
+                "This ban was set by an administrator. Please contact the administrator.";
+
+            arena.style.display = "none";
+            haptic("error");
+            return;
+        }
+
+        $("taunt").textContent =
+            data.message || "Could not unban you. Please try again.";
+
+        yesBtn.disabled = false;
+
+    } catch (error) {
+        console.error("Unban error:", error);
+
+        $("taunt").textContent =
+            error.name === "AbortError"
+                ? "The server took too long. Try again."
+                : "Connection problem. Try again.";
+
+        yesBtn.disabled = false;
+
+    } finally {
+        unbanning = false;
+    }
+}
+
+// ==========================================
+// CONFETTI
+// ==========================================
+
+function confetti() {
+    if (reduceMotion) return;
+
+    const canvas = $("confetti");
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) return;
+
+    const ratio = Math.min(window.devicePixelRatio || 1, 2);
+
+    const width = canvas.width = window.innerWidth * ratio;
+    const height = canvas.height = window.innerHeight * ratio;
+
+    canvas.style.display = "block";
+
+    const colors = [
+        "#4fd08f",
+        "#4cb8d9",
+        "#f0b440",
+        "#ff7a73",
+        "#b58cff"
+    ];
+
+    const pieces = Array.from({ length: 90 }, () => ({
+        x: Math.random() * width,
+        y: -Math.random() * height * 0.4,
+        size: (5 + Math.random() * 6) * ratio,
+        vx: (Math.random() - 0.5) * 3 * ratio,
+        vy: (2 + Math.random() * 4) * ratio,
+        rotation: Math.random() * 6,
+        spin: (Math.random() - 0.5) * 0.3,
+        color: colors[Math.floor(Math.random() * colors.length)]
+    }));
+
+    const start = performance.now();
+
+    function frame(time) {
+        ctx.clearRect(0, 0, width, height);
+
+        pieces.forEach(piece => {
+            piece.x += piece.vx;
+            piece.y += piece.vy;
+            piece.vy += 0.05 * ratio;
+            piece.rotation += piece.spin;
+
+            ctx.save();
+            ctx.translate(piece.x, piece.y);
+            ctx.rotate(piece.rotation);
+            ctx.fillStyle = piece.color;
+            ctx.fillRect(
+                -piece.size / 2,
+                -piece.size / 4,
+                piece.size,
+                piece.size / 2
+            );
+            ctx.restore();
+        });
+
+        if (time - start < 2600) {
+            requestAnimationFrame(frame);
+        } else {
+            ctx.clearRect(0, 0, width, height);
+            canvas.style.display = "none";
+        }
+    }
+
+    requestAnimationFrame(frame);
+}
+
+// ==========================================
+// DEVICE ID
+// ==========================================
+
+// This is a device identifier for basic abuse detection.
+// It is not a guaranteed permanent hardware identifier.
+
+function getDeviceId() {
+    const storageKey = "device_installation_id";
+
+    try {
+        let id = localStorage.getItem(storageKey);
+
+        if (!id) {
+            id = window.crypto?.randomUUID
+                ? window.crypto.randomUUID()
+                : Date.now().toString(36) +
+                  Math.random().toString(36).slice(2);
+
+            localStorage.setItem(storageKey, id);
+        }
+
+        return id;
+    } catch (error) {
+        // Some browsers restrict localStorage.
+        // The server must not assume this is a stable device identity.
+        return window.crypto?.randomUUID
+            ? window.crypto.randomUUID()
+            : Date.now().toString(36) +
+              Math.random().toString(36).slice(2);
+    }
+}
+
+// ==========================================
+// CLOSE MINI APP (user lands in the bot chat)
+// ==========================================
+
+function closeApp() {
+    try {
+        if (tg && typeof tg.close === "function") {
+            tg.close();
+        } else {
+            window.close();
+        }
+    } catch (error) {}
+}
+
+// ==========================================
+// VERIFICATION REQUEST
+// ==========================================
+
+let busy = false;
+
+function welcomeTitle() {
+    return USER_NAME ? `Welcome, ${USER_NAME}!` : "Welcome!";
+}
+
+async function verify() {
+    if (busy) return;
+
+    busy = true;
+    $("retryBtn").disabled = true;
+    $("checkBtn").disabled = true;
+    $("adminBox").hidden = true;
+
+    // Welcome animation while the checks run.
+    setState(
+        "loading",
+        welcomeTitle(),
+        "Please wait while we securely check your account."
+    );
+
+    buildSteps();
+
+    try {
+        if (!tg || !tg.initData) {
+            setState(
+                "warning",
+                "Open from Telegram",
+                "Telegram authentication data is missing. Open this verification page using the VERIFY button in your bot."
+            );
+            return;
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(
+            () => controller.abort(),
+            15000
+        );
+
+        let response;
+
+        try {
+            response = await fetch(`${API_BASE}/api/auth`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-init-data": tg.initData,
+                    "x-device": getDeviceId()
+                },
+                signal: controller.signal
+            });
+        } finally {
+            clearTimeout(timeoutId);
+        }
+
+        let data;
+
+        try {
+            data = await response.json();
+        } catch {
+            throw new Error("The server returned an invalid response.");
+        }
+
+        // Show the real results of every check, one by one.
+        if (Array.isArray(data.checks)) {
+            await revealSteps(data.checks);
+        } else {
+            $("steps").hidden = true;
+        }
+
+        isAdminUser = data.is_admin === true;
+
+        // --------------------------------------
+        // SUCCESS
+        // --------------------------------------
+
+        if (response.ok &&
+            data.ok === true &&
+            data.status === "verified") {
+
+            setState(
+                "success",
+                "You are verified!",
+                isAdminUser
+                    ? "Your account is verified. As an admin you can manage the required channels."
+                    : "Your account has been verified. Check the bot chat to continue."
+            );
+
+            confetti();
+            haptic("success");
+
+            // Close automatically; the bot already sent the message.
+            // Admins stay so they can manage the channels.
+            if (!isAdminUser) {
+                setTimeout(closeApp, 2200);
+            }
+
+            return;
+        }
+
+        // --------------------------------------
+        // MUST JOIN CHANNELS
+        // --------------------------------------
+
+        if (data.status === "join") {
+            showJoin(Array.isArray(data.channels) ? data.channels : []);
+
+            setState(
+                "join",
+                "Join our channels",
+                data.message ||
+                "Join all the channels below, then press the check button."
+            );
+
+            haptic("light");
+            return;
+        }
+
+        // --------------------------------------
+        // BANNED
+        // --------------------------------------
+
+        if (data.status === "banned") {
+            setState(
+                "banned",
+                "You are banned",
+                data.message ||
+                "Your account is permanently banned. Contact the administrator if you believe this is a mistake."
+            );
+
+            haptic("error");
+            return;
+        }
+
+        // --------------------------------------
+        // OTHER SERVER ERRORS
+        // --------------------------------------
+
+        if (response.status === 403) {
+            setState(
+                "error",
+                "Access denied",
+                data.message ||
+                "The server could not authorize this verification."
+            );
+
+            return;
+        }
+
+        setState(
+            "error",
+            "Verification failed",
+            data.message ||
+            "We could not complete verification. Please try again."
+        );
+
+    } catch (error) {
+        console.error("Verification error:", error);
+
+        setState(
+            "error",
+            error.name === "AbortError"
+                ? "Request timed out"
+                : "Connection problem",
+            error.name === "AbortError"
+                ? "The server took too long to respond. Please try again."
+                : "Could not reach the verification server. Check your connection and try again."
+        );
+
+    } finally {
+        busy = false;
+        $("retryBtn").disabled = false;
+        $("checkBtn").disabled = false;
+    }
+}
+
+// ==========================================
+// EVENTS
+// ==========================================
+
+$("retryBtn").addEventListener("click", verify);
+$("checkBtn").addEventListener("click", verify);
+$("doneBtn").addEventListener("click", closeApp);
+
+// ==========================================
+// START
+// ==========================================
+
+verify();
+</script>
+</body>
+</html>
