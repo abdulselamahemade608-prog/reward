@@ -64,7 +64,7 @@ plus:'<path d="M12 5v14M5 12h14"/>',trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l
 star:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z" fill="currentColor"/>',check:'<path d="M5 12.5l4.5 4.5L19 7"/>',
 x:'<path d="M6 6l12 12M18 6L6 18"/>',ad:'<path d="M3 11v2a1 1 0 0 0 1 1h3l7 4V6L7 10H4a1 1 0 0 0-1 1z"/><path d="M18 9a4 4 0 0 1 0 6"/>',
 set:'<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
-out:'<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',inbox:'<path d="M4 13l2-8h12l2 8v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M4 13h5a3 3 0 0 0 6 0h5"/>'};
+out:'<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>',inbox:'<path d="M4 13l2-8h12l2 8v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M4 13h5a3 3 0 0 0 6 0h5"/>'};
 const ic=n=>`<svg viewBox="0 0 24 24">${P[n]}</svg>`;
 const tile=(n,g)=>`<span class="ico ${g}">${ic(n)}</span>`;
 const $=s=>document.querySelector(s);
@@ -75,7 +75,7 @@ if(!tg||!tg.initData){
   throw new Error('Not inside Telegram');
 }
 tg.ready();tg.expand();
-const ref=new URLSearchParams(location.search).get('ref')||'';
+const ref=String(new URLSearchParams(location.search).get('ref')||(tg.initDataUnsafe&&tg.initDataUnsafe.start_param)||'').replace('ref_','');
 async function api(p,m='GET',b){
   const r=await fetch('/api/'+p,{method:m,headers:{'Content-Type':'application/json','x-init':tg.initData,'x-ref':ref},body:b?JSON.stringify(b):undefined});
   const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'Something went wrong');return j}
@@ -84,47 +84,70 @@ const run=async f=>{try{await f()}catch(e){toast(e.message)}};
 const open=u=>/^https:\/\/t\.me\//.test(u)?tg.openTelegramLink(u):tg.openLink(u);
 const GR=['g1','g2','g3','g4','g5'];
 const img=(id,i=0,icon='gift')=>id?`<img class="ph" src="/img/${id}" alt="">`:`<div class="noimg ${GR[i%5]}">${ic(icon)}</div>`;
-let S={},A=null,tab='home',first=true;
+let S={},A=null,PR=null,tab='home',first=true;
 
-async function load(){S=await api('home');if(tab==='admin')A=await api('admin/data');render();
+async function load(){S=await api('home');if(tab==='admin')A=await api('admin/data');if(tab==='profile')PR=await api('profile');render();
   if(first&&tab==='home'){first=false;const e=$('.hero .n');if(e){const to=S.points,t0=performance.now();(function f(t){const k=Math.min(1,(t-t0)/700);e.textContent=Math.round(to*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(f)})(t0)}}}
 function render(){
-  $('#nav').innerHTML=[['home','Home','home'],['tasks','Tasks','tasks'],...(S.admin?[['admin','Admin','shield']]:[])].map(([k,l,i])=>`<button class="${tab===k?'on':''}" onclick="tab='${k}';run(load)">${ic(i)}${l}</button>`).join('');
-  $('#app').innerHTML=tab==='home'?home():tab==='tasks'?tasks():admin();scrollTo(0,0)}
+  $('#nav').innerHTML=[['home','Home','home'],['tasks','Tasks','tasks'],['profile','Profile','user'],...(S.admin?[['admin','Admin','shield']]:[])].map(([k,l,i])=>`<button class="${tab===k?'on':''}" onclick="tab='${k}';run(load)">${ic(i)}${l}</button>`).join('');
+  $('#app').innerHTML=tab==='home'?home():tab==='tasks'?tasks():tab==='profile'?profile():admin();scrollTo(0,0)}
+const medal=i=>['🥇','🥈','🥉'][i]||('#'+(i+1));
+const board=(t,i,g,rows,val)=>`<h2>${tile(i,g)} ${t}</h2>`+(rows.length?`<div class="card" style="padding:4px 14px">`+rows.map((u,k)=>`<div class="row" style="padding:11px 0;${k?'border-top:1px solid var(--line)':''}"><div class="head"><b style="min-width:34px">${medal(k)}</b><b>${esc(u.name||'User')}${String(u.id)===String(S.me)?' (you)':''}</b></div><span class="pill">${val(u)}</span></div>`).join('')+`</div>`:`<div class="empty">${tile(i,g)}No one yet.<br>Be the first!</div>`);
 function home(){return `
 <div class="top"><div><span>Welcome back</span><b>${esc(tg.initDataUnsafe.user?.first_name||'Friend')}</b></div></div>
-<div class="hero"><small>${ic('star')} Your points</small><div class="n">${S.points}</div><button class="w" onclick="run(watch)">${ic('play')} Watch an ad, get 1 point</button></div>
+<div class="hero"><small>${ic('star')} Your points</small><div class="n">${S.points}</div>${S.ad_pending?`<button class="w" onclick="run(collectAd)">${ic('star')} Collect 1 point</button> <button style="background:#ffffff33;color:#fff" onclick="run(watch)">${ic('play')} Open ad again</button>`:`<button class="w" onclick="run(watch)">${ic('play')} Watch an ad, get 1 point</button>`}
+<div style="position:relative;z-index:1;margin-top:12px;font-size:12px;opacity:.9">Ads today: ${S.ads_today} / ${S.ad_limit}</div></div>
 <h2>${tile('gift','g2')} Rewards</h2>
-${S.rewards.length?S.rewards.map((r,i)=>{const pc=Math.min(100,S.points/r.cost*100);return `<div class="card">${img(r.image_id,i)}
-<div class="row"><b style="font-size:16px">${esc(r.title)}</b><span class="pill">${ic('star')}${r.cost}</span></div>
-<div class="mut" style="margin-top:4px">${esc(r.body)}</div><div class="bar"><i style="width:${pc}%"></i></div>
-<button class="full ${S.points>=r.cost?'ok':'soft'}" ${S.points<r.cost?'disabled':''} onclick="run(()=>claim(${r.id}))">${S.points<r.cost?`${r.cost-S.points} more points needed`:ic('gift')+' Claim reward'}</button></div>`}).join('')
-:`<div class="empty">${tile('gift','g2')}No rewards yet.<br>Check back soon.</div>`}`}
+${(S.rewards||[]).length?(S.rewards||[]).map((r,i)=>{const mi=r.min_invites||0,np=Math.max(0,r.cost-S.points),ni=Math.max(0,mi-S.invites),ok=!np&&!ni,pc=Math.min(100,S.points/r.cost*100),pi=mi?Math.min(100,S.invites/mi*100):100;
+const lbl=ok?ic('gift')+' Claim reward':[np?np+' more points':'',ni?ni+' more invites':''].filter(Boolean).join(' + ')+' needed';
+return `<div class="card">${img(r.image_id,i)}
+<div class="row"><b style="font-size:16px">${esc(r.title)}</b><span><span class="pill">${ic('star')}${r.cost}</span>${mi?` <span class="pill">${ic('users')}${mi}</span>`:''}</span></div>
+<div class="mut" style="margin-top:4px">${esc(r.body)}</div>
+<div class="mut" style="margin-top:8px">Points ${Math.min(S.points,r.cost)} / ${r.cost}</div><div class="bar"><i style="width:${pc}%"></i></div>
+${mi?`<div class="mut">Invites ${Math.min(S.invites,mi)} / ${mi}</div><div class="bar"><i style="width:${pi}%"></i></div>`:''}
+<button class="full ${ok?'ok':'soft'}" ${ok?'':'disabled'} onclick="run(()=>claim(${r.id}))">${lbl}</button></div>`}).join('')
+:`<div class="empty">${tile('gift','g2')}No rewards yet.<br>Check back soon.</div>`}
+${board('Top points','star','g4',S.top_points||[],u=>u.points+' pts')}`}
 function tasks(){
   const link=`https://t.me/${S.bot}?start=ref_${S.me}`;
-  return `<div class="card invite"><div class="head">${tile('users','g6').replace('g6','')} <div><b style="font-size:17px">Invite friends</b><div class="mut">Earn ${S.invite_points} points for every friend who joins with your link.</div></div></div>
+  return `<div class="card invite"><div class="head">${tile('users','g6').replace('g6','')} <div><b style="font-size:17px">Invite friends</b><div class="mut">Earn ${S.invite_points} points for every friend who joins with your link.<br>You invited <b>${S.invites}</b> friend(s) so far.</div></div></div>
 <div class="row" style="margin-top:14px"><button class="w full" onclick="tg.openTelegramLink('https://t.me/share/url?url='+encodeURIComponent('${link}'))">${ic('share')} Share</button>
 <button class="w full" onclick="navigator.clipboard.writeText('${link}').then(()=>toast('Link copied'))">${ic('copy')} Copy</button></div></div>
+${board('Top inviters','users','g3',S.top_invites||[],u=>u.invites+' invites')}
 <h2>${tile('tasks','g1')} Tasks</h2>
-${S.tasks.length?S.tasks.map((t,i)=>`<div class="card ${t.done?'done':''}">${t.image_id?img(t.image_id):''}
+${(S.tasks||[]).length?(S.tasks||[]).map((t,i)=>`<div class="card ${t.done?'done':''}">${t.image_id?img(t.image_id):''}
 <div class="head">${tile(t.type==='join'?'send':'bot',t.type==='join'?'g5':'g1')}<div style="flex:1"><b>${esc(t.title)}</b><div class="mut">${esc(t.body)}</div></div><span class="pill">${ic('star')}${t.points}</span></div>
 <div class="row" style="margin-top:12px">${t.done?`<span class="st approved" style="display:inline-flex;gap:4px;align-items:center">${ic('check').replace('<svg','<svg width=14 height=14')} Completed</span>`:`
 <button class="soft full" onclick="open('${esc(t.link)}')">${ic('out')} ${t.type==='join'?'Join channel':'Open bot'}</button>
 <button class="full" onclick="run(()=>doTask(${t.id}))">${ic('check')} ${t.type==='join'?'Verify':'I did it'}</button>`}</div></div>`).join('')
 :`<div class="empty">${tile('tasks','g1')}No tasks yet.<br>Check back soon.</div>`}`}
-async function claim(id){await api('reward/'+id+'/claim','POST');toast('Claimed. The admin will contact you.');await load()}
+function profile(){if(!PR)return '<p class="mut">Loading...</p>';const p=PR,uu=(tg.initDataUnsafe&&tg.initDataUnsafe.user)||{};
+  const row=(k,v)=>`<div class="row" style="padding:10px 0;border-top:1px solid var(--line)"><span class="mut">${k}</span><b>${v}</b></div>`;
+  const link=`https://t.me/${S.bot}?start=ref_${S.me}`;
+  return `<div class="top"><div><span>My account</span><b>Profile</b></div></div>
+<div class="card" style="text-align:center"><div style="position:relative;width:88px;height:88px;margin:6px auto 12px;border-radius:50%;background:linear-gradient(135deg,#6c4cf1,#ff5c8a);color:#fff;display:grid;place-items:center;font-size:36px;font-weight:800;overflow:hidden">${esc((p.name||'U').trim().charAt(0).toUpperCase())}${uu.photo_url?`<img src="${esc(uu.photo_url)}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.remove()">`:''}</div>
+<b style="font-size:19px">${esc(p.name)}</b><div class="mut">${p.username?'@'+esc(p.username):'No username'}</div></div>
+<div class="row" style="gap:10px;margin-bottom:12px">${stat(p.points,'Points','g4','star')}${stat(p.invites,'Invites','g3','users')}</div>
+<div class="card" style="padding:4px 14px">${row('Name',esc(p.name))}${row('Username',p.username?'@'+esc(p.username):'-')}${row('Telegram ID',esc(p.id))}${row('Joined',new Date(p.created_at).toLocaleDateString())}
+${row('Points rank','#'+p.rank_points)}${row('Invites rank',p.invites?'#'+p.rank_invites:'-')}${row('Ads today',p.ads_today+' / '+S.ad_limit)}${row('Ads watched (total)',p.ads_total)}${row('Tasks completed',p.tasks_done)}${row('Invited by',p.invited_by_name?esc(p.invited_by_name):'-')}</div>
+<div class="card invite"><b>My invite link</b><div class="mut" style="word-break:break-all;margin:6px 0 12px">${link}</div>
+<div class="row"><button class="w full" onclick="tg.openTelegramLink('https://t.me/share/url?url='+encodeURIComponent('${link}'))">${ic('share')} Share</button>
+<button class="w full" onclick="navigator.clipboard.writeText('${link}').then(()=>toast('Link copied'))">${ic('copy')} Copy</button></div></div>
+<h2>${tile('inbox','g4')} My claims</h2>${(p.claims||[]).length?p.claims.map(c=>`<div class="card"><div class="row"><b>${esc(c.title)}</b><span class="pill">${ic('star')}${c.cost}</span></div><div class="row" style="margin-top:8px"><span class="st ${c.status}">${c.status}</span><span class="mut">${new Date(c.created_at).toLocaleDateString()}</span></div></div>`).join(''):`<div class="empty">${tile('inbox','g4')}No claims yet.</div>`}`}
+async function claim(id){await api('reward/'+id+'/claim','POST');await load();contact()}
+function contact(){const o=$('#ov');o.style.display='block';
+  o.innerHTML=`<div class="center"><div><span class="ico g3" style="width:64px;height:64px;margin:0 auto 16px">${ic('gift')}</span><h2 style="justify-content:center;margin:0 0 8px">Claim sent!</h2>
+<p class="mut">To receive your reward, contact the admin:<br><b style="font-size:17px;color:var(--ink)">@${esc(S.owner)}</b></p>
+<button class="full" onclick="tg.openTelegramLink('https://t.me/${esc(S.owner)}')">${ic('send')} Contact @${esc(S.owner)}</button>
+<button class="soft full" style="margin-top:10px" onclick="$('#ov').style.display='none'">Close</button></div></div>`}
 async function doTask(id){const r=await api('task/'+id,'POST');toast('+'+r.points+' points');await load()}
 async function watch(){
-  const {ad,token,seconds}=await api('ad/next');const o=$('#ov');o.style.display='block';
-  o.innerHTML=`<div class="wrap"><div class="top"><div><span>Sponsored</span><b>Stay for ${seconds} seconds</b></div><button class="bad" onclick="$('#ov').style.display='none'">${ic('x')}</button></div>
-<div class="card">${img(ad.image_id,3,'ad')}<b style="font-size:17px">${esc(ad.title)}</b><div class="mut">${esc(ad.body)}</div>
-${ad.link?`<div style="margin-top:12px"><button class="soft full" onclick="open('${esc(ad.link)}')">${ic('out')} Visit</button></div>`:''}</div>
-<div class="bar"><i id="pb"></i></div><button class="full" id="wb" disabled>Wait ${seconds}s</button></div>`;
-  let left=seconds;const b=$('#wb'),pb=$('#pb');
-  const iv=setInterval(()=>{left--;pb.style.width=(100-left/seconds*100)+'%';
-    if(left>0)b.textContent='Wait '+left+'s';else{clearInterval(iv);b.disabled=false;b.className='full ok';b.innerHTML=ic('star')+' Collect 1 point';
-      b.onclick=()=>run(async()=>{await api('ad/done','POST',{token});o.style.display='none';toast('+1 point');await load()})}},1000);
-  setTimeout(()=>pb.style.width=(100/seconds)+'%',50)}
+  const r=await api('ad/start','POST');
+  await load();
+  toast('Watch the ad in the bot, then come back and collect your point');
+  open(r.link)}
+async function collectAd(){await api('ad/done','POST');toast('+1 point');await load()}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&tab==='home')run(load)});
 
 // ---------- Admin ----------
 function upImg(id){const f=$('#'+id).files[0];if(!f)return null;
@@ -134,32 +157,29 @@ function upImg(id){const f=$('#'+id).files[0];if(!f)return null;
 const v=id=>$('#'+id).value;
 const del=(k,id)=>run(async()=>{await api('admin/'+k+'/'+id,'DELETE');await load()});
 const add=(k,body)=>run(async()=>{await api('admin/'+k,'POST',body);toast('Saved');await load()});
-const addReward=()=>run(async()=>add('reward',{title:v('rt'),body:v('rb'),cost:v('rc'),image_id:await upImg('ri')}));
-const addAd=()=>run(async()=>add('ad',{title:v('at'),body:v('ab'),link:v('al'),image_id:await upImg('ai')}));
+const addReward=()=>run(async()=>add('reward',{title:v('rt'),body:v('rb'),cost:v('rc'),min_invites:v('rm'),image_id:await upImg('ri')}));
 const addTask=()=>run(async()=>add('task',{type:v('tk'),title:v('tt'),body:v('tb'),channel:v('tch'),link:v('tl'),points:v('tp'),image_id:await upImg('ti')}));
-const saveSet=()=>add('settings',{ad_seconds:v('s1'),invite_points:v('s2'),daily_ad_limit:v('s3')});
+const saveSet=()=>add('settings',{ad_seconds:v('s1'),invite_points:v('s2'),daily_ad_limit:v('s3'),ad_confirm:v('s4')});
 const act=(id,st)=>run(async()=>{await api('admin/claim/'+id,'POST',{status:st});await load()});
 const list=(k,a,g,i)=>a.map(x=>`<div class="card row" style="padding:10px 12px">${tile(i,g)}<span style="flex:1;font-weight:700">${esc(x.title)}</span><button class="bad" onclick="del('${k}',${x.id})">${ic('trash')}</button></div>`).join('');
 function tkChange(){const j=v('tk')==='join';$('#tchw').style.display=j?'block':'none';$('#tlw').style.display=j?'none':'block'}
 const stat=(n,l,g,i)=>`<div class="card head" style="flex:1;margin:0">${tile(i,g)}<div><b style="font-size:20px">${n}</b><div class="mut">${l}</div></div></div>`;
-function admin(){if(!A)return '<p class="mut">Loading...</p>';const s=A.settings,pend=A.claims.filter(c=>c.status==='pending').length;return `
+function admin(){if(!A)return '<p class="mut">Loading...</p>';const s=A.settings,pend=(A.claims||[]).filter(c=>c.status==='pending').length;return `
 <div class="top"><div><span>Control center</span><b>Admin</b></div></div>
 <div class="row" style="gap:10px">${stat(A.users,'Users','g5','users')}${stat(pend,'Pending claims','g4','inbox')}</div>
-<h2>${tile('inbox','g4')} Reward claims</h2>${A.claims.length?A.claims.map(c=>`<div class="card"><div class="row"><b>${esc(c.title)}</b><span class="pill">${ic('star')}${c.cost}</span></div>
+<h2>${tile('inbox','g4')} Reward claims</h2>${(A.claims||[]).length?(A.claims||[]).map(c=>`<div class="card"><div class="row"><b>${esc(c.title)}</b><span class="pill">${ic('star')}${c.cost}</span></div>
 <div class="mut">${esc(c.name)} ${c.username?'@'+esc(c.username):''} (ID ${c.user_id})</div>
 ${c.status==='pending'?`<div class="row" style="margin-top:10px"><button class="ok full" onclick="act(${c.id},'approved')">${ic('check')} Approve</button><button class="bad full" onclick="act(${c.id},'rejected')">${ic('x')} Reject</button></div>`:`<div style="margin-top:8px"><span class="st ${c.status}">${c.status}</span></div>`}</div>`).join(''):`<div class="empty">${tile('inbox','g4')}No claims yet.</div>`}
 <h2>${tile('gift','g2')} Add reward</h2><div class="card"><label>Title</label><input id="rt"><label>Description</label><textarea id="rb" rows="3"></textarea>
-<label>Points needed</label><input id="rc" type="number" min="1"><label>Photo</label><input id="ri" type="file" accept="image/*"><button class="full" onclick="addReward()">${ic('plus')} Save reward</button></div>${list('reward',A.rewards,'g2','gift')}
+<label>Points needed</label><input id="rc" type="number" min="1"><label>Invites needed (0 = no invites needed)</label><input id="rm" type="number" min="0" value="0"><label>Photo</label><input id="ri" type="file" accept="image/*"><button class="full" onclick="addReward()">${ic('plus')} Save reward</button></div>${list('reward',A.rewards||[],'g2','gift')}
 <h2>${tile('tasks','g1')} Add task</h2><div class="card"><label>Task type</label><select id="tk" onchange="tkChange()"><option value="join">Join a channel</option><option value="bot">Open a bot (photo task)</option></select>
 <label>Title</label><input id="tt"><label>How it works</label><textarea id="tb" rows="3"></textarea>
 <div id="tchw"><label>Channel username (the bot must be admin there)</label><input id="tch" placeholder="@mychannel"></div>
 <div id="tlw" style="display:none"><label>Bot link</label><input id="tl" placeholder="https://t.me/somebot"></div>
 <label>Points</label><input id="tp" type="number" min="1" value="5"><label>Photo (optional)</label><input id="ti" type="file" accept="image/*">
-<button class="full" onclick="addTask()">${ic('plus')} Save task</button></div>${list('task',A.tasks,'g1','tasks')}
-<h2>${tile('ad','g5')} Add ad</h2><div class="card"><label>Title</label><input id="at"><label>Text</label><textarea id="ab" rows="3"></textarea>
-<label>Link (optional)</label><input id="al" placeholder="https://"><label>Photo</label><input id="ai" type="file" accept="image/*"><button class="full" onclick="addAd()">${ic('plus')} Save ad</button></div>${list('ad',A.ads,'g5','ad')}
+<button class="full" onclick="addTask()">${ic('plus')} Save task</button></div>${list('task',A.tasks||[],'g1','tasks')}
 <h2>${tile('set','g3')} Settings</h2><div class="card"><label>Seconds to watch an ad</label><input id="s1" type="number" value="${s.ad_seconds}">
 <label>Points for each invited friend</label><input id="s2" type="number" value="${s.invite_points}">
-<label>Max ads per user per day</label><input id="s3" type="number" value="${s.daily_ad_limit}"><button class="full ok" onclick="saveSet()">${ic('check')} Save settings</button></div>`}
-run(load);
+<label>Max ads per user per day</label><input id="s3" type="number" value="${s.daily_ad_limit}"><label>Require ad confirmation from the bot (1 = yes, 0 = no)</label><input id="s4" type="number" min="0" max="1" value="${s.ad_confirm}"><button class="full ok" onclick="saveSet()">${ic('check')} Save settings</button></div>`}
+load().catch(e=>{$('#app').innerHTML=`<div class="center"><div><h2 style="justify-content:center">Could not load</h2><p class="mut">${esc(e.message)}</p><button onclick="location.reload()">Try again</button></div></div>`});
 </script></body></html>
