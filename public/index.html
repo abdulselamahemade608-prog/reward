@@ -6,7 +6,24 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Bricolage+Grotesque:wght@700;800&family=Noto+Sans+Ethiopic:wght@500;700;800&display=swap" rel="stylesheet">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link rel="stylesheet" href="/style.css?v=2"></head><body>
+<link rel="stylesheet" href="/style.css?v=2">
+<style>
+.vw-overlay{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;padding:22px;background:rgba(5,12,25,.78);backdrop-filter:blur(10px);animation:vw-fade .22s ease-out}
+.vw-card{width:min(100%,360px);padding:30px 24px 24px;border-radius:26px;background:#fff;color:#172033;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.28);animation:vw-pop .42s cubic-bezier(.2,.85,.25,1.2)}
+.vw-check{width:86px;height:86px;margin:0 auto 18px;border-radius:50%;display:grid;place-items:center;background:#e7f9ef;color:#159653;box-shadow:0 0 0 10px rgba(22,163,74,.08);animation:vw-ring .7s ease-out}
+.vw-check svg{width:44px;height:44px;stroke:currentColor;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:60;stroke-dashoffset:60;animation:vw-draw .55s .15s ease forwards}
+.vw-card h2{margin:0 0 9px;font-size:25px;font-weight:800;letter-spacing:-.6px}
+.vw-card p{margin:0 auto 22px;max-width:270px;color:#64748b;font-size:14px;line-height:1.6}
+.vw-continue{width:100%;border:0;border-radius:14px;padding:14px 18px;background:#1769e0;color:#fff;font-size:15px;font-weight:800;cursor:pointer}
+.vw-note{margin-top:13px!important;margin-bottom:0!important;font-size:11px!important;color:#94a3b8!important}
+@keyframes vw-fade{from{opacity:0}to{opacity:1}}
+@keyframes vw-pop{from{opacity:0;transform:translateY(18px) scale(.92)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes vw-ring{0%{transform:scale(.55);opacity:.25}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+@keyframes vw-draw{to{stroke-dashoffset:0}}
+@media(prefers-reduced-motion:reduce){.vw-overlay,.vw-card,.vw-check,.vw-check svg{animation:none!important}.vw-check svg{stroke-dashoffset:0}}
+</style>
+
+</head><body>
 <div class="wrap" id="app"></div><div id="ov"></div><div id="toast"></div><nav id="nav"></nav>
 <script>
 const tg=window.Telegram&&window.Telegram.WebApp;
@@ -43,7 +60,24 @@ const GR=['g1','g2','g3','g4','g5'];
 const img=(id,i=0,icon='gift')=>id?`<img class="ph" src="/img/${id}" alt="">`:`<div class="noimg ${GR[i%5]}">${ic(icon)}</div>`;
 let S={},A=null,PR=null,tab='home',first=true;
 
+function showVerifiedWelcome(name){
+  const host=$('#ov');
+  if(!host)return;
+  host.style.display='block';
+  host.innerHTML=`<div class="vw-overlay" role="dialog" aria-modal="true" aria-labelledby="vw-title">
+    <div class="vw-card">
+      <div class="vw-check"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M10 25l9 9L38 14"/></svg></div>
+      <h2 id="vw-title">Welcome, ${esc(name||'Friend')}!</h2>
+      <p>Your Telegram account has been verified successfully. Your Rewards app is ready to use.</p>
+      <button class="vw-continue" type="button" onclick="closeVerifiedWelcome()">Continue to Rewards</button>
+      <p class="vw-note">You can now explore your Rewards dashboard.</p>
+    </div>
+  </div>`;
+}
+function closeVerifiedWelcome(){const host=$('#ov');if(host){host.innerHTML='';host.style.display='none';}}
+
 async function load(){S=await api('home');if(tab==='admin')A=await api('admin/data');if(tab==='profile')PR=await api('profile');render();
+  if(S.verified_welcome)showVerifiedWelcome(tg.initDataUnsafe.user?.first_name||'Friend');
   if(first&&tab==='home'){first=false;const e=$('.hero .n');if(e){const to=S.points,t0=performance.now();(function f(t){const k=Math.min(1,(t-t0)/700);e.textContent=Math.round(to*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(f)})(t0)}}}
 function render(){
   $('#nav').innerHTML=[['home','Home','home'],['tasks','Tasks','tasks'],['profile','Profile','user'],...(S.admin?[['admin','Admin','shield']]:[])].map(([k,l,i])=>`<button class="${tab===k?'on':''}" onclick="tab='${k}';run(load)">${ic(i)}${l}</button>`).join('');
@@ -65,7 +99,7 @@ async function redeem(){const r=await api('promo','POST',{code:v('pc')});toast('
 function home(){return `
 <div class="top"><div><span>Welcome back</span><b>${esc(tg.initDataUnsafe.user?.first_name||'Friend')}</b></div></div>
 ${S.maintenance?`<div class="card" style="border-color:var(--red)"><b>Maintenance mode is ON</b><div class="mut">Only admins can use the app right now.</div></div>`:''}
-<div class="hero"><small>${ic('play')} Watch ads</small><div style="position:relative;z-index:1;margin:8px 0 12px;font-size:14px;opacity:.92">Complete an ad to earn points.</div>${S.ad_pending?`<button class="w" onclick="run(watch)">${ic('play')} Open ad again</button>`:`<button class="w" onclick="run(watch)">${ic('play')} Watch an ad</button>`}
+<div class="hero"><small>${ic('star')} Your points</small><div class="n">${S.points}</div>${S.ad_pending?`<button class="w" onclick="run(collectAd)">${ic('star')} Collect 1 point</button> <button style="background:#ffffff33;color:#fff" onclick="run(watch)">${ic('play')} Open ad again</button>`:`<button class="w" onclick="run(watch)">${ic('play')} Watch an ad, get 1 point</button>`}
 <div style="position:relative;z-index:1;margin-top:12px;font-size:12px;opacity:.9">Ads today: ${S.ads_today} / ${S.ad_limit}</div></div>
 ${checkin()}
 ${promoCard()}
@@ -100,8 +134,9 @@ async function doTask(id){const r=await api('task/'+id,'POST');toast('+'+r.point
 async function watch(){
   const r=await api('ad/start','POST');
   await load();
-  toast('Complete the ad in the bot, then return to the app');
+  toast('Watch the ad in the bot, then come back and collect your point');
   open(r.link)}
+async function collectAd(){await api('ad/done','POST');toast('+1 point');await load()}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&tab==='home')run(load)});
 
 // ---------- Admin ----------
