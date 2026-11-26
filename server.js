@@ -171,10 +171,7 @@ app.post('/api/admin/settings', ad, wrap(async (req, res) => {
   res.json({ ok: true });
 }));
 
-const fs = require('fs');
-const pageFile = ['public/index.html', 'index.html'].map(f => path.join(__dirname, f)).find(f => fs.existsSync(f));
-app.get(['/', '/index.html'], (req, res) => pageFile
-  ? res.type('html').send(fs.readFileSync(pageFile))
-  : res.status(500).send('index.html was not found in this deployment. Put it in a folder named public, next to server.js.'));
+const PAGE = require('./page');
+app.get(['/', '/index.html'], (req, res) => res.type('html').send(PAGE));
 module.exports = app;
 if (require.main === module) app.listen(process.env.PORT || 3000);
