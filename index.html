@@ -78,9 +78,10 @@ tg.ready();tg.expand();
 const ref=String(new URLSearchParams(location.search).get('ref')||(tg.initDataUnsafe&&tg.initDataUnsafe.start_param)||'').replace('ref_','');
 async function api(p,m='GET',b){
   const r=await fetch('/api/'+p,{method:m,headers:{'Content-Type':'application/json','x-init':tg.initData,'x-ref':ref},body:b?JSON.stringify(b):undefined});
-  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'Something went wrong');return j}
+  const j=await r.json().catch(()=>({}));if(!r.ok){const e=new Error(j.error||'Something went wrong');e.maint=!!j.maintenance;throw e}return j}
+function showMaint(m){$('#nav').innerHTML='';$('#app').innerHTML=`<div class="center"><div><span class="ico g4" style="width:64px;height:64px;margin:0 auto 16px">${ic('set')}</span><h2 style="justify-content:center;margin:0 0 8px">Under maintenance</h2><p class="mut">${esc(m)}</p><button onclick="location.reload()">Try again</button></div></div>`}
 let tt;function toast(t){const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(tt);tt=setTimeout(()=>e.style.display='none',2800)}
-const run=async f=>{try{await f()}catch(e){toast(e.message)}};
+const run=async f=>{try{await f()}catch(e){e.maint?showMaint(e.message):toast(e.message)}};
 const open=u=>/^https:\/\/t\.me\//.test(u)?tg.openTelegramLink(u):tg.openLink(u);
 const GR=['g1','g2','g3','g4','g5'];
 const img=(id,i=0,icon='gift')=>id?`<img class="ph" src="/img/${id}" alt="">`:`<div class="noimg ${GR[i%5]}">${ic(icon)}</div>`;
@@ -93,10 +94,25 @@ function render(){
   $('#app').innerHTML=tab==='home'?home():tab==='tasks'?tasks():tab==='profile'?profile():admin();scrollTo(0,0)}
 const medal=i=>['🥇','🥈','🥉'][i]||('#'+(i+1));
 const board=(t,i,g,rows,val)=>`<h2>${tile(i,g)} ${t}</h2>`+(rows.length?`<div class="card" style="padding:4px 14px">`+rows.map((u,k)=>`<div class="row" style="padding:11px 0;${k?'border-top:1px solid var(--line)':''}"><div class="head"><b style="min-width:34px">${medal(k)}</b><b>${esc(u.name||'User')}${String(u.id)===String(S.me)?' (you)':''}</b></div><span class="pill">${val(u)}</span></div>`).join('')+`</div>`:`<div class="empty">${tile(i,g)}No one yet.<br>Be the first!</div>`);
+function checkin(){const c=S.checkin;if(!c)return '';const pts=n=>c.base+(Math.min(n,c.max)-1)*c.step;
+  const ref=c.done_today?c.streak:c.streak+1,b0=Math.floor((Math.max(ref,1)-1)/7)*7+1;
+  const days=[0,1,2,3,4,5,6].map(i=>b0+i).map(d=>{const done=d<=c.streak,now=!c.done_today&&d===c.streak+1;
+    const st=done?'background:var(--mint);color:#fff':now?'background:var(--sun);color:#fff':'background:var(--bg);border:1.5px solid var(--line)';
+    return `<div style="flex:1;text-align:center"><div style="aspect-ratio:1;border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:13px;${st}">${done?'✓':'+'+pts(d)}</div><div class="mut" style="font-size:10px;margin-top:4px">Day ${d}</div></div>`}).join('');
+  return `<div class="card"><div class="head">${tile('star','g4')}<div><b style="font-size:17px">Daily check-in</b><div class="mut">🔥 ${c.streak} day streak</div></div></div>
+<div class="row" style="gap:6px;margin:14px 0">${days}</div>
+<button class="full ${c.done_today?'soft':'ok'}" ${c.done_today?'disabled':''} onclick="run(doCheckin)">${c.done_today?'Come back tomorrow for +'+pts(c.streak+1):'Check in +'+pts(c.streak+1)}</button></div>`}
+async function doCheckin(){const r=await api('checkin','POST');toast('+'+r.points+' points! 🔥 '+r.streak+' day streak');await load()}
+const promoCard=()=>`<div class="card"><div class="head">${tile('gift','g3')}<div><b style="font-size:17px">Promo code</b><div class="mut">Got a code from our channel? Enter it here.</div></div></div>
+<div class="row" style="gap:8px;margin-top:12px"><input id="pc" placeholder="CODE" autocapitalize="characters" style="margin:0;flex:1;text-transform:uppercase"><button onclick="run(redeem)">Redeem</button></div></div>`;
+async function redeem(){const r=await api('promo','POST',{code:v('pc')});toast('+'+r.points+' points!');await load()}
 function home(){return `
 <div class="top"><div><span>Welcome back</span><b>${esc(tg.initDataUnsafe.user?.first_name||'Friend')}</b></div></div>
+${S.maintenance?`<div class="card" style="border-color:var(--red)"><b>Maintenance mode is ON</b><div class="mut">Only admins can use the app right now.</div></div>`:''}
 <div class="hero"><small>${ic('star')} Your points</small><div class="n">${S.points}</div>${S.ad_pending?`<button class="w" onclick="run(collectAd)">${ic('star')} Collect 1 point</button> <button style="background:#ffffff33;color:#fff" onclick="run(watch)">${ic('play')} Open ad again</button>`:`<button class="w" onclick="run(watch)">${ic('play')} Watch an ad, get 1 point</button>`}
 <div style="position:relative;z-index:1;margin-top:12px;font-size:12px;opacity:.9">Ads today: ${S.ads_today} / ${S.ad_limit}</div></div>
+${checkin()}
+${promoCard()}
 <h2>${tile('gift','g2')} Rewards</h2>
 ${(S.rewards||[]).length?(S.rewards||[]).map((r,i)=>{const mi=r.min_invites||0,np=Math.max(0,r.cost-S.points),ni=Math.max(0,mi-S.invites),ok=!np&&!ni,pc=Math.min(100,S.points/r.cost*100),pi=mi?Math.min(100,S.invites/mi*100):100;
 const lbl=ok?ic('gift')+' Claim reward':[np?np+' more points':'',ni?ni+' more invites':''].filter(Boolean).join(' + ')+' needed';
@@ -159,7 +175,16 @@ const del=(k,id)=>run(async()=>{await api('admin/'+k+'/'+id,'DELETE');await load
 const add=(k,body)=>run(async()=>{await api('admin/'+k,'POST',body);toast('Saved');await load()});
 const addReward=()=>run(async()=>add('reward',{title:v('rt'),body:v('rb'),cost:v('rc'),min_invites:v('rm'),image_id:await upImg('ri')}));
 const addTask=()=>run(async()=>add('task',{type:v('tk'),title:v('tt'),body:v('tb'),channel:v('tch'),link:v('tl'),points:v('tp'),image_id:await upImg('ti')}));
-const saveSet=()=>add('settings',{ad_seconds:v('s1'),invite_points:v('s2'),daily_ad_limit:v('s3'),ad_confirm:v('s4')});
+const saveSet=()=>add('settings',{ad_seconds:v('s1'),invite_points:v('s2'),daily_ad_limit:v('s3'),ad_confirm:v('s4'),checkin_base:v('s5'),checkin_step:v('s6'),checkin_max:v('s7'),maintenance:v('s8'),maintenance_msg:v('mmsg')});
+const addPromo=()=>run(async()=>{const r=await api('admin/promo','POST',{code:v('pcode'),points:v('ppts'),max_uses:v('pmax'),hours:v('phrs')});toast('Code created: '+r.code);await load()});
+const askYes=m=>new Promise(r=>tg.showConfirm?tg.showConfirm(m,r):r(confirm(m)));
+async function sendBroadcast(){const text=v('bt').trim();if(!text)throw new Error('Write a message first');
+  if(!await askYes('Send this message to ALL users?'))return;
+  const r=await api('admin/broadcast','POST',{text,button:$('#bb').checked}),st=$('#bst');
+  for(;;){const b=await api('admin/broadcast/'+r.id+'/step','POST',{});
+    st.textContent='Sending... '+(Number(b.sent)+Number(b.failed))+' / '+b.total;
+    if(b.status==='done'){st.textContent='Done. Sent '+b.sent+', failed '+b.failed+' (failed = users who blocked the bot or never started it)';await load();break}
+    await new Promise(z=>setTimeout(z,(b.wait||1)*1000))}}
 const act=(id,st)=>run(async()=>{await api('admin/claim/'+id,'POST',{status:st});await load()});
 const list=(k,a,g,i)=>a.map(x=>`<div class="card row" style="padding:10px 12px">${tile(i,g)}<span style="flex:1;font-weight:700">${esc(x.title)}</span><button class="bad" onclick="del('${k}',${x.id})">${ic('trash')}</button></div>`).join('');
 function tkChange(){const j=v('tk')==='join';$('#tchw').style.display=j?'block':'none';$('#tlw').style.display=j?'none':'block'}
@@ -178,8 +203,21 @@ ${c.status==='pending'?`<div class="row" style="margin-top:10px"><button class="
 <div id="tlw" style="display:none"><label>Bot link</label><input id="tl" placeholder="https://t.me/somebot"></div>
 <label>Points</label><input id="tp" type="number" min="1" value="5"><label>Photo (optional)</label><input id="ti" type="file" accept="image/*">
 <button class="full" onclick="addTask()">${ic('plus')} Save task</button></div>${list('task',A.tasks||[],'g1','tasks')}
+<h2>${tile('send','g1')} Broadcast</h2><div class="card"><label>Message to all users</label><textarea id="bt" rows="4" maxlength="3500"></textarea>
+<label style="display:flex;gap:8px;align-items:center"><input id="bb" type="checkbox" checked style="width:auto;margin:0"> Add an "Open app" button</label>
+<button class="full" style="margin-top:12px" onclick="run(sendBroadcast)">${ic('send')} Send to everyone</button><div id="bst" class="mut" style="margin-top:10px"></div>
+${(A.broadcasts||[]).map(b=>`<div class="mut" style="margin-top:6px">${new Date(b.created_at).toLocaleString()}: sent ${b.sent}, failed ${b.failed} / ${b.total}${b.status==='done'?'':' (not finished)'}</div>`).join('')}</div>
+<h2>${tile('gift','g2')} Promo codes</h2><div class="card"><label>Code (leave empty for a random one)</label><input id="pcode" autocapitalize="characters" style="text-transform:uppercase">
+<label>Points</label><input id="ppts" type="number" min="1" value="10"><label>Max uses (0 = unlimited)</label><input id="pmax" type="number" min="0" value="0">
+<label>Expires after hours (0 = never)</label><input id="phrs" type="number" min="0" value="0"><button class="full" onclick="addPromo()">${ic('plus')} Create code</button></div>
+${(A.promos||[]).map(p=>`<div class="card row" style="padding:10px 12px"><div style="flex:1"><b>${esc(p.code)}</b><div class="mut">+${p.points} pts · used ${p.used}${p.max_uses?' / '+p.max_uses:''}${p.expires_at?' · expires '+new Date(p.expires_at).toLocaleString():''}</div></div>
+<button onclick="navigator.clipboard.writeText('${esc(p.code)}').then(()=>toast('Copied'))">${ic('copy')}</button><button class="bad" onclick="del('promo',${p.id})">${ic('trash')}</button></div>`).join('')}
 <h2>${tile('set','g3')} Settings</h2><div class="card"><label>Seconds to watch an ad</label><input id="s1" type="number" value="${s.ad_seconds}">
 <label>Points for each invited friend</label><input id="s2" type="number" value="${s.invite_points}">
-<label>Max ads per user per day</label><input id="s3" type="number" value="${s.daily_ad_limit}"><label>Require ad confirmation from the bot (1 = yes, 0 = no)</label><input id="s4" type="number" min="0" max="1" value="${s.ad_confirm}"><button class="full ok" onclick="saveSet()">${ic('check')} Save settings</button></div>`}
-load().catch(e=>{$('#app').innerHTML=`<div class="center"><div><h2 style="justify-content:center">Could not load</h2><p class="mut">${esc(e.message)}</p><button onclick="location.reload()">Try again</button></div></div>`});
+<label>Max ads per user per day</label><input id="s3" type="number" value="${s.daily_ad_limit}"><label>Require ad confirmation from the bot (1 = yes, 0 = no)</label><input id="s4" type="number" min="0" max="1" value="${s.ad_confirm}"><label>Check-in: points for day 1</label><input id="s5" type="number" value="${s.checkin_base}"><label>Check-in: extra points for each next day</label><input id="s6" type="number" value="${s.checkin_step}">
+<label>Check-in: bonus stops growing after day</label><input id="s7" type="number" min="1" value="${s.checkin_max}">
+<label>Maintenance mode</label><select id="s8"><option value="0" ${s.maintenance?'':'selected'}>Off</option><option value="1" ${s.maintenance?'selected':''}>ON - users see the message below</option></select>
+<label>Maintenance message</label><textarea id="mmsg" rows="3">${esc(s.maintenance_msg)}</textarea>
+<button class="full ok" onclick="saveSet()">${ic('check')} Save settings</button></div>`}
+load().catch(e=>{if(e.maint)return showMaint(e.message);$('#app').innerHTML=`<div class="center"><div><h2 style="justify-content:center">Could not load</h2><p class="mut">${esc(e.message)}</p><button onclick="location.reload()">Try again</button></div></div>`});
 </script></body></html>
